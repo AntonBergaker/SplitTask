@@ -12,17 +12,31 @@ namespace Planner
 {
     static class Exporter
     {
-        public static void Export(List<Task> tasks, string path)
+        public static void ExportToFile(List<Task> tasks, string path)
         {
+            JObject array = JObjectFromTasklist(tasks);
+            File.WriteAllText(path,array.ToString());
+        }
+        public static string ExportToString(List<Task> tasks)
+        {
+            JObject array = JObjectFromTasklist(tasks);
+            return array.ToString();
+        }
+
+        private static JObject JObjectFromTasklist(List<Task> tasks)
+        {
+            JObject obj = new JObject();
             List<JObject> list = new List<JObject>();
             for (int i = 0; i < tasks.Count; i++)
             {
                 Task t = tasks[i];
-                JObject obj = CreateJObjectFromTask(t);
-                list.Add(obj);
+                JObject nObj = CreateJObjectFromTask(t);
+                list.Add(nObj);
             }
 
-            File.WriteAllText(path,new JArray(list).ToString());
+            obj.Add("tasks", new JArray(list));
+
+            return obj;
         }
 
         private static JObject CreateJObjectFromTask(Task task)

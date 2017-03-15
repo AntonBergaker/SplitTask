@@ -68,7 +68,7 @@ namespace Planner
             {
                 if (File.Exists(importFileDialog.FileName))
                 {
-                    tasks.Import(importFileDialog.FileName);
+                    tasks.ImportFile(importFileDialog.FileName);
                     PopulateList();
                 }
             }
@@ -83,7 +83,7 @@ namespace Planner
         {
             if (exportFileDialog.ShowDialog() == DialogResult.OK)
             {
-                tasks.Export(exportFileDialog.FileName);
+                tasks.ExportFile(exportFileDialog.FileName);
             }
         }
 

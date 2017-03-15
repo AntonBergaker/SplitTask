@@ -47,6 +47,8 @@ namespace Planner
                 }
             }
         }
+        public int Count
+        { get { return tasks.Count; } }
 
         public void Add(Task task)
         {
@@ -59,13 +61,22 @@ namespace Planner
             parentTask.subtasks.Add(newTask);
             IDDictionary.Add(newTask.ID, newTask);
         }
-        public void Export(string path)
+        public void ExportFile(string path)
         {
-            Exporter.Export(tasks,path);
+            Exporter.ExportToFile(tasks,path);
         }
-        public void Import(string path)
+        public string ExportString()
         {
-            tasks = Importer.Import(path);
+            return Exporter.ExportToString(tasks);
+        }
+        public void ImportFile(string path)
+        {
+            tasks = Importer.ImportFromFile(path);
+            UpdateIDDictionary();
+        }
+        public void ImportText(string text)
+        {
+            tasks = Importer.ImportFromText(text);
             UpdateIDDictionary();
         }
         private void UpdateIDDictionary()

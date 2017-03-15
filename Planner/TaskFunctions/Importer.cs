@@ -11,24 +11,57 @@ namespace Planner
 {
     static class Importer
     {
-        public static List<Task> Import(string path)
+        public static List<Task> ImportFromFile(string path)
         {
-            List<Task> list = new List<Task>();
+            JObject obj;
 
             try
             {
-                JArray array = JArray.Parse(File.ReadAllText(path));
+                obj = JObject.Parse(File.ReadAllText(path));
+            }
+            catch (JsonReaderException e)
+            {
+                obj = new JObject();
+            }
 
-                foreach (JObject obj in array)
+            return TasklistFromJObject(obj);
+        }
+
+        public static List<Task> ImportFromText(string text)
+        {
+            JObject array;
+
+            try
+            {
+                array = JObject.Parse(text);
+            }
+            catch (JsonReaderException e)
+            {
+                array = new JObject();
+            }
+
+            return TasklistFromJObject(array);
+        }
+
+
+        private static List<Task> TasklistFromJObject(JObject obj)
+        {
+            List<Task> list = new List<Task>();
+            JArray array = (JArray)obj["tasks"];
+            try
+            {
+                foreach (JObject nobj in array)
                 {
-                    Task task = CreateTaskFromJObject(obj);
+                    Task task = CreateTaskFromJObject(nobj);
                     list.Add(task);
                 }
                 return list;
-            } catch(JsonReaderException e)
+            }
+            catch (JsonReaderException e)
             {
                 return list;
             }
+            
         }
 
         private static Task CreateTaskFromJObject(JObject obj)
