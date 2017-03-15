@@ -5,7 +5,16 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Planner", "Planner\Planner.csproj", "{EF331E4A-1886-489B-99E5-F5B7C5508179}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebHost", "WebHost\WebHost.csproj", "{767CD51F-B7D1-4195-BDC3-386B99D78D33}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "TaskFunctions", "TaskFunctions\TaskFunctions.shproj", "{D9272065-E652-4FBE-9257-3B84D83114E3}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		TaskFunctions\TaskFunctions.projitems*{767cd51f-b7d1-4195-bdc3-386b99d78d33}*SharedItemsImports = 4
+		TaskFunctions\TaskFunctions.projitems*{d9272065-e652-4fbe-9257-3b84d83114e3}*SharedItemsImports = 13
+		TaskFunctions\TaskFunctions.projitems*{ef331e4a-1886-489b-99e5-f5b7c5508179}*SharedItemsImports = 4
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -15,6 +24,10 @@ Global
 		{EF331E4A-1886-489B-99E5-F5B7C5508179}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EF331E4A-1886-489B-99E5-F5B7C5508179}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EF331E4A-1886-489B-99E5-F5B7C5508179}.Release|Any CPU.Build.0 = Release|Any CPU
+		{767CD51F-B7D1-4195-BDC3-386B99D78D33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{767CD51F-B7D1-4195-BDC3-386B99D78D33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{767CD51F-B7D1-4195-BDC3-386B99D78D33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{767CD51F-B7D1-4195-BDC3-386B99D78D33}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
