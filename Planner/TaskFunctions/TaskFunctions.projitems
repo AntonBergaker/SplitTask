@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Exporter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Importer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Task.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TaskClientHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TaskCollection.cs" />
   </ItemGroup>
 </Project>

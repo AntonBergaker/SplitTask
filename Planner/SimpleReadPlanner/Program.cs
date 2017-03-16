@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 using System.Diagnostics;
+using TaskFunctions;
 
 namespace SimpleReadPlanner
 {
@@ -17,34 +18,21 @@ namespace SimpleReadPlanner
         {
             TaskCollection tasks = new TaskCollection();
 
-            TcpClient client = new TcpClient("127.0.0.1",5171);
+            TaskClientHandler client = new TaskClientHandler(tasks);
 
-            byte[] fullPackage;
+            client.RecievedData += new EventHandler<RecievedDataEventArgs>(HandleData);
 
-            using (NetworkStream stream = client.GetStream())
-            {
-                byte[] recievedBytes = new byte[1024];
-                MemoryStream byteStream = new MemoryStream();
+            client.Connect("127.0.0.1");
 
-                // Incoming message may be larger than the buffer size.
-                int bytesRead = 0;
+            Console.WriteLine("Recieved " + tasks.Count + " tasks");
 
-                do
-                {
-                    bytesRead = stream.Read(recievedBytes, 0, recievedBytes.Length);
 
-                    byteStream.Write(recievedBytes, 0, bytesRead);
-                    System.Threading.Thread.Sleep(1);
-                }
-                while (stream.DataAvailable);
+            Console.ReadLine();
+        }
 
-                fullPackage = byteStream.ToArray();
-                string data = Encoding.UTF8.GetString(fullPackage);
-                Console.WriteLine(data);
-                tasks.ImportText(data);
-                Console.WriteLine(data.Count(f => f == '\n').ToString() + " lines read. " + tasks.Count.ToString() + " tasks imported.");
-                Console.ReadLine();
-            }
+        private static void HandleData(object sender, RecievedDataEventArgs e)
+        {
+            Console.WriteLine(e.textData);
         }
     }
 }

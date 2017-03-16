@@ -25,7 +25,7 @@ namespace WebHost
 
             IPAddress adress = IPAddress.Parse("127.0.0.1");
             TcpListener serverSocket = new TcpListener(adress,5171);
-            TcpClient clientSocket = default(TcpClient);
+            TcpClient clientSocket;
             int counter = 0;
 
             serverSocket.Start();
@@ -50,32 +50,43 @@ namespace WebHost
         TcpClient clientSocket;
         string clNo;
         TaskCollection tasks;
+        NetworkStream stream;
 
         public void startClient(TcpClient inClientSocket, string clineNo, TaskCollection tasks)
         {
             this.tasks = tasks;
             this.clientSocket = inClientSocket;
             this.clNo = clineNo;
+            stream = clientSocket.GetStream();
             Thread ctThread = new Thread(SendHandShake);
             ctThread.Start();
         }
         private void SendHandShake()
         {
-            byte[] bytesFrom = new byte[10025];
-            byte[] sendBytes = null;
+            SendData(tasks.ExportString());
+        }
+        private void SendData(string data)
+        {
+            byte[] sendBytes = Encoding.UTF8.GetBytes(data);
+            stream.Write(sendBytes, 0, sendBytes.Length);
+            stream.Flush();
+        }
+        private byte[] RecieveData()
+        {
+            byte[] recievedBytes = new byte[1024];
+            MemoryStream byteStream = new MemoryStream();
+            int bytesRead = 0;
 
-            try
+            do
             {
-                NetworkStream networkStream = clientSocket.GetStream();
+                bytesRead = stream.Read(recievedBytes, 0, recievedBytes.Length);
 
-                sendBytes = Encoding.UTF8.GetBytes(tasks.ExportString());
-                networkStream.Write(sendBytes, 0, sendBytes.Length);
-                networkStream.Flush();
+                byteStream.Write(recievedBytes, 0, bytesRead);
+                Thread.Sleep(1);
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
+            while (stream.DataAvailable);
+
+            return byteStream.ToArray();
         }
     }
 }
