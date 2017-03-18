@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using TaskFunctions;
 
 namespace Planner
 {
@@ -15,11 +16,20 @@ namespace Planner
     {
         public Random randomGenerator = new Random();
         TaskCollection tasks = new TaskCollection();
+        TaskWebClient webClient;
 
         public FormMain()
         {
             InitializeComponent();
-            
+
+            webClient = new TaskWebClient(tasks);
+            MethodInvoker realAction1 = HandleTasksRecieve;
+            webClient.RecievedTasks += (sender, args) => this.BeginInvoke(realAction1);
+            MethodInvoker realAction2 = HandleTaskRecieve;
+            webClient.RecievedTask += (sender, args) => this.BeginInvoke(realAction2);
+            MethodInvoker realAction3 = HandleTaskRename;
+            webClient.RenamedTask += (sender, args) => this.BeginInvoke(realAction3);
+            webClient.Connect("127.0.0.1");
         }
 
         private void buttonNewTask_Click(object sender, EventArgs e)
@@ -27,6 +37,7 @@ namespace Planner
             Task task = new Task("");
             task.chooseID(randomGenerator);
             tasks.Add(task);
+            webClient.TaskAdd(task);
             PopulateList();
             taskTree.selectedNode = taskTree.nodes.Last();
             taskTree.RenameTask();
@@ -56,7 +67,7 @@ namespace Planner
         }
         private TaskTreeNode BuildNodeFromTask(Task task)
         {
-            TaskTreeNode node = new TaskTreeNode(task.title,task.ID);
+            TaskTreeNode node = new TaskTreeNode(task);
             foreach (Task t in task.subtasks)
             { node.children.Add(BuildNodeFromTask(t)); }
             return node;
@@ -76,7 +87,8 @@ namespace Planner
 
         private void taskTree_TextChanged(object sender, TextChangedEventArgs e)
         {
-            tasks.IDDictionary[e.taskID].title = e.newText;
+            tasks.Rename(e.taskID,e.newText);
+            webClient.TaskRename(e.taskID, e.newText);
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
@@ -107,6 +119,18 @@ namespace Planner
                 tasks.Remove(ID);
                 taskTree.Refresh();
             }
+        }
+        private void HandleTasksRecieve()
+        {
+            PopulateList();
+        }
+        private void HandleTaskRecieve()
+        {
+            PopulateList();
+        }
+        private void HandleTaskRename()
+        {
+            taskTree.Refresh();
         }
     }
 }

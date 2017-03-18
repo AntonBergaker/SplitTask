@@ -8,10 +8,11 @@ using System.IO;
 using System.Diagnostics;
 using System.Threading;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace TaskFunctions
 {
-    class TaskClientHandler
+    class TaskWebClient
     {
         private TaskCollection tasks;
         private IPAddress address;
@@ -20,12 +21,12 @@ namespace TaskFunctions
         private bool handShaken;
         private readonly byte[] terminationBytes = new byte[] { 0x15, 0xba, 0xfc, 0x61 };
 
-        public TaskClientHandler(TaskCollection tasks)
+        public TaskWebClient(TaskCollection tasks)
         {
             this.tasks = tasks;
             handShaken = false;
         }
-        public TaskClientHandler(TaskCollection tasks, string address)
+        public TaskWebClient(TaskCollection tasks, string address)
         {
             this.tasks = tasks;
             handShaken = false;
@@ -43,11 +44,79 @@ namespace TaskFunctions
             mainThread.Start();
             
         }
+        public void TaskAdd(Task task, Task parentTask = null)
+        {
+            //tasks.Add(task,parentTask);
+            JObject obj = new JObject();
+            obj.Add("type", "AddTask");
+            if (parentTask != null)
+            {
+                obj.Add("parent", parentTask.ID);
+            }
+            else
+            { obj.Add("parent", null); }
+            obj.Add("task", task.ToJObject());
+            SendData(obj.ToString());
+        }
+        public void TaskRename(Task task, string newName)
+        {
+            TaskRename(task.ID, newName);
+        }
+        public void TaskRename(string taskID, string newName)
+        {
+            JObject obj = new JObject();
+            obj.Add("type", "RenameTask");
+            obj.Add("ID", taskID);
+            obj.Add("newName", newName);
+            SendData(obj.ToString());
+        }
+
         private void MainLoop()
         {
             while (true)
             {
-                string message = Encoding.UTF8.GetString(RecieveData());
+                if (stream.DataAvailable)
+                {
+                    try
+                    {
+                        string message = Encoding.UTF8.GetString(RecieveData());
+                        JObject obj = JObject.Parse(message);
+                        HandleData(obj);
+                    }
+                    catch (Exception ex)
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    Thread.Sleep(10);
+                    if (!client.Connected)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+        private void HandleData(JObject obj)
+        {
+            string type = (string)obj["type"];
+            Planner.Task task;
+            switch (type)
+            {
+                case "AddTask":
+                    task = Task.Parse((JObject)obj["task"]);
+                    tasks.Add(task);
+                    Console.WriteLine("made a new task: " + task.title + "(" + task.ID + ")");
+                    OnRecievedTask(task);
+                    break;
+                case "RenameTask":
+                    string taskID = (string)obj["ID"];
+                    string newName = (string)obj["newName"];
+                    tasks.Rename(taskID, newName);
+                    Console.WriteLine("Renamed task: " + newName + "(" + taskID + ")");
+                    OnRenamedTask(taskID, newName);
+                    break;
             }
         }
 
@@ -119,14 +188,26 @@ namespace TaskFunctions
                 RecievedTasks(this, e);
             }
         }
-    }
-    class RecievedDataEventArgs : EventArgs
-    {
-        public string textData { get { return Encoding.UTF8.GetString(byteData); } }
-        public byte[] byteData { get; set; }
-    }
-    class RecievedTasksEventArgs : EventArgs
-    {
-        public TaskCollection tasks { get; set; }
+        public event EventHandler<RecievedTaskEventArgs> RecievedTask;
+        protected virtual void OnRecievedTask(Task task)
+        {
+            if (RecievedTask != null)
+            {
+                RecievedTaskEventArgs e = new RecievedTaskEventArgs();
+                e.task = task;
+                RecievedTask(this, e);
+            }
+        }
+        public event EventHandler<RenamedTaskEventArgs> RenamedTask;
+        protected virtual void OnRenamedTask(string taskID, string newName)
+        {
+            if (RenamedTask != null)
+            {
+                RenamedTaskEventArgs e = new RenamedTaskEventArgs();
+                e.taskID = taskID;
+                e.newName = newName;
+                RenamedTask(this, e);
+            }
+        }
     }
 }

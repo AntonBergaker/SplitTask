@@ -6,19 +6,18 @@ using System.Threading.Tasks;
 
 namespace Planner
 {
-    public class TaskTreeNode
+    class TaskTreeNode
     {
-        public string name;
-        public bool check;
+        public Task task;
         public List<TaskTreeNode> children;
-        public readonly string ID;
+        public string ID;
         public int x = 0;
         public int y = 0;
 
-        public TaskTreeNode(string name, string ID)
+        public TaskTreeNode(Task task)
         {
-            this.name = name;
-            this.ID = ID;
+            this.task = task;
+            this.ID = task.ID;
             children = new List<TaskTreeNode>();
         }
     }

@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Sockets;
 using Planner;
 using System.Threading;
+using TaskFunctions;
 
 namespace WebHost
 {
@@ -16,6 +17,7 @@ namespace WebHost
         static void Main(string[] args)
         {
             TaskCollection tasks = new TaskCollection();
+            List<ClientHandler> clients = new List<ClientHandler>();
             string path = "tasks.tlf";
             if (File.Exists(path))
             {
@@ -23,25 +25,9 @@ namespace WebHost
                 Console.WriteLine("Imported " + path + ". " + tasks.Count.ToString() + " tasks imported.");
             }
 
-            TcpListener serverSocket = new TcpListener(IPAddress.Any,5171);
-            TcpClient clientSocket;
+            WebServer server = new WebServer(tasks);
+            server.Start(5171);
 
-            try
-            {
-                serverSocket.Start();
-            } catch (Exception ex)
-            { Console.WriteLine(ex.ToString()); }
-
-            while (true)
-            {
-                clientSocket = serverSocket.AcceptTcpClient();
-                Console.WriteLine("Client Connected");
-                ClientHandler client = new ClientHandler();
-                client.StartClient(clientSocket, tasks);
-            }
-
-            clientSocket.Close();
-            serverSocket.Stop();
         }
     }
 }

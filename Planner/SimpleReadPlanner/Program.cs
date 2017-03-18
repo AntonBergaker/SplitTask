@@ -18,7 +18,7 @@ namespace SimpleReadPlanner
         {
             TaskCollection tasks = new TaskCollection();
 
-            TaskClientHandler client = new TaskClientHandler(tasks);
+            TaskWebClient client = new TaskWebClient(tasks);
 
             client.RecievedData += new EventHandler<RecievedDataEventArgs>(HandleData);
             client.RecievedTasks += new EventHandler<RecievedTasksEventArgs>(HandleTasks);

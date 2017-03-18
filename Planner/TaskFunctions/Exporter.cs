@@ -30,30 +30,11 @@ namespace Planner
             for (int i = 0; i < tasks.Count; i++)
             {
                 Task t = tasks[i];
-                JObject nObj = CreateJObjectFromTask(t);
+                JObject nObj = t.ToJObject();
                 list.Add(nObj);
             }
-
+            obj.Add("type", "TaskList");
             obj.Add("tasks", new JArray(list));
-
-            return obj;
-        }
-
-        private static JObject CreateJObjectFromTask(Task task)
-        {
-            JObject obj = new JObject();
-            obj.Add("name", task.title);
-
-            List<JObject> sublist = new List<JObject>();
-            foreach (Task t in task.subtasks)
-            { sublist.Add(CreateJObjectFromTask(t)); }
-
-            JArray array = new JArray(sublist);
-            obj.Add("subtasks", array);
-            obj.Add("description", task.description);
-            obj.Add("created", task.timeCreated);
-            obj.Add("folder", task.isFolder);
-            obj.Add("ID", task.ID);
 
             return obj;
         }

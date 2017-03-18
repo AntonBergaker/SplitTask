@@ -52,7 +52,7 @@ namespace Planner
             {
                 foreach (JObject nobj in array)
                 {
-                    Task task = CreateTaskFromJObject(nobj);
+                    Task task = Task.Parse(nobj);
                     list.Add(task);
                 }
                 return list;
@@ -62,21 +62,6 @@ namespace Planner
                 return list;
             }
             
-        }
-
-        private static Task CreateTaskFromJObject(JObject obj)
-        {
-            string name = (string)obj["name"];
-            string id = (string)obj["ID"];
-            Task task = new Task(name,id);
-            JArray array = (JArray)obj["subtasks"];
-            foreach (JObject j in array)
-            { task.subtasks.Add(CreateTaskFromJObject(j)); }
-
-            task.description = (string)obj.GetValue("description");
-            task.isFolder = (bool)obj.GetValue("folder");
-            task.timeCreated = (DateTime)obj.GetValue("created");
-            return task;
         }
     }
 }

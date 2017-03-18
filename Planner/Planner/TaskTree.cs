@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace Planner
 {
-    public partial class TaskTree : UserControl
+    partial class TaskTree : UserControl
     {
         public List<TaskTreeNode> nodes;
         public List<TaskTreeNode> visibleNodes;
@@ -36,14 +36,14 @@ namespace Planner
         private void inputBox_TextChanged(object sender, EventArgs e)
         {
             inputBox.Width = TextRenderer.MeasureText(inputBox.Text,inputBox.Font).Width + 5;
-            selectedNode.name = inputBox.Text;
+            selectedNode.task.title = inputBox.Text;
         }
 
         private void inputBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
-                selectedNode.name = inputBox.Text;
+                selectedNode.task.title = inputBox.Text;
                 this.Controls.Remove(inputBox);
                 OnTextChanged(new TextChangedEventArgs());
 
@@ -74,7 +74,7 @@ namespace Planner
             if (selectedNode != null)
             {
                 inputBox.Location = new Point(selectedNode.x, selectedNode.y);
-                inputBox.Text = selectedNode.name;
+                inputBox.Text = selectedNode.task.title;
                 this.Controls.Add(inputBox);
                 inputBox.SelectAll();
                 inputBox.Focus();
@@ -134,7 +134,7 @@ namespace Planner
             node.y = arguments.height;
             node.x = 20 + iterations * 20;
 
-            arguments.eventArgs.Graphics.DrawString(node.name, arguments.font, brush, node.x, node.y);
+            arguments.eventArgs.Graphics.DrawString(node.task.title, arguments.font, brush, node.x, node.y);
 
             visibleNodes.Add(node);
             arguments.height += 20;
@@ -165,8 +165,8 @@ namespace Planner
         {
             if (selectedNode != null)
             {
-                e.taskID = selectedNode.ID;
-                e.newText = selectedNode.name;
+                e.taskID = selectedNode.task.ID;
+                e.newText = selectedNode.task.title;
                 TextChanged(this,e);
             }
         }

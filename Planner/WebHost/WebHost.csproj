@@ -50,6 +50,7 @@
     <Compile Include="ClientHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Webserver.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
