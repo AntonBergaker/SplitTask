@@ -23,70 +23,25 @@ namespace WebHost
                 Console.WriteLine("Imported " + path + ". " + tasks.Count.ToString() + " tasks imported.");
             }
 
-            IPAddress adress = IPAddress.Parse("127.0.0.1");
-            TcpListener serverSocket = new TcpListener(adress,5171);
+            TcpListener serverSocket = new TcpListener(IPAddress.Any,5171);
             TcpClient clientSocket;
-            int counter = 0;
 
-            serverSocket.Start();
+            try
+            {
+                serverSocket.Start();
+            } catch (Exception ex)
+            { Console.WriteLine(ex.ToString()); }
 
             while (true)
             {
-                counter += 1;
                 clientSocket = serverSocket.AcceptTcpClient();
                 Console.WriteLine("Client Connected");
-                HandleClient client = new HandleClient();
-                client.startClient(clientSocket, Convert.ToString(counter), tasks);
+                ClientHandler client = new ClientHandler();
+                client.StartClient(clientSocket, tasks);
             }
 
             clientSocket.Close();
             serverSocket.Stop();
-        }
-    }
-
-    //Class to handle each client request
-    class HandleClient
-    {
-        TcpClient clientSocket;
-        string clNo;
-        TaskCollection tasks;
-        NetworkStream stream;
-
-        public void startClient(TcpClient inClientSocket, string clineNo, TaskCollection tasks)
-        {
-            this.tasks = tasks;
-            this.clientSocket = inClientSocket;
-            this.clNo = clineNo;
-            stream = clientSocket.GetStream();
-            Thread ctThread = new Thread(SendHandShake);
-            ctThread.Start();
-        }
-        private void SendHandShake()
-        {
-            SendData(tasks.ExportString());
-        }
-        private void SendData(string data)
-        {
-            byte[] sendBytes = Encoding.UTF8.GetBytes(data);
-            stream.Write(sendBytes, 0, sendBytes.Length);
-            stream.Flush();
-        }
-        private byte[] RecieveData()
-        {
-            byte[] recievedBytes = new byte[1024];
-            MemoryStream byteStream = new MemoryStream();
-            int bytesRead = 0;
-
-            do
-            {
-                bytesRead = stream.Read(recievedBytes, 0, recievedBytes.Length);
-
-                byteStream.Write(recievedBytes, 0, bytesRead);
-                Thread.Sleep(1);
-            }
-            while (stream.DataAvailable);
-
-            return byteStream.ToArray();
         }
     }
 }

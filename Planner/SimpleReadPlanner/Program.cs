@@ -21,10 +21,9 @@ namespace SimpleReadPlanner
             TaskClientHandler client = new TaskClientHandler(tasks);
 
             client.RecievedData += new EventHandler<RecievedDataEventArgs>(HandleData);
-
-            client.Connect("127.0.0.1");
-
-            Console.WriteLine("Recieved " + tasks.Count + " tasks");
+            client.RecievedTasks += new EventHandler<RecievedTasksEventArgs>(HandleTasks);
+    
+            client.Connect("185.16.95.101");
 
 
             Console.ReadLine();
@@ -33,6 +32,10 @@ namespace SimpleReadPlanner
         private static void HandleData(object sender, RecievedDataEventArgs e)
         {
             Console.WriteLine(e.textData);
+        }
+        private static void HandleTasks(object sender, RecievedTasksEventArgs e)
+        {
+            Console.WriteLine("Recieved " + e.tasks.Count + " tasks");
         }
     }
 }
