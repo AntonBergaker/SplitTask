@@ -25,7 +25,6 @@ namespace SimpleReadPlanner
     
             client.Connect("185.16.95.101");
 
-
             Console.ReadLine();
         }
 

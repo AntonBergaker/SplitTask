@@ -72,7 +72,15 @@ namespace WebHost
             {
                 case "AddTask":
                     task = Planner.Task.Parse((JObject)obj["task"]);
-                    tasks.Add(task);
+                    string parentTask = (string)obj["parent"];
+                    if (parentTask != null)
+                    {
+                        tasks.Add(task, parentTask);
+                    }
+                    else
+                    {
+                        tasks.Add(task);
+                    }
                     Console.WriteLine("made a new task: " + task.title + "(" + task.ID + ")");
                     OnRecievedJson(obj, true);
                     break;

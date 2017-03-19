@@ -22,7 +22,9 @@ namespace Planner
         public string description = "";
         public bool isFolder = false;
         public Task parent = null;
-        public DateTime timeCreated;
+        public DateTime? timeCreated;
+        public DateTime? timeCompleted;
+        public DateTime? timeDue;
         private string id = "";
 
         public Task(string name)
@@ -60,19 +62,28 @@ namespace Planner
         }
         public static Task Parse(JObject obj)
         {
-            string name = (string)obj["name"];
-            string id = (string)obj["ID"];
+            string name = TryReadValue("name", obj, "Unknown Task Name");
+            string id = TryReadValue("ID", obj, "ID-Is-Lost-You-Should-Panic-Right-Now-Friend");
             Task task = new Task(name, id);
-            JArray array = (JArray)obj["subtasks"];
+            JArray array = TryReadValue("subtasks",obj,new JArray());
             foreach (JObject j in array)
             { task.subtasks.Add(Parse(j)); }
 
-            task.description = (string)obj.GetValue("description");
-            task.isFolder = (bool)obj.GetValue("folder");
-            task.timeCreated = (DateTime)obj.GetValue("created");
+            task.description = TryReadValue("description",obj,"");
+            task.isFolder = TryReadValue("folder", obj , false);
+            task.timeCreated = TryReadValue<DateTime?>("created", obj,null);
+            task.timeDue = TryReadValue<DateTime?>("due", obj, null);
+            task.timeCompleted = TryReadValue<DateTime?>("completed", obj, null);
             return task;
         }
 
+        private static T TryReadValue<T>(string key, JObject obj, T defaultValue)
+        {
+            JToken token = obj[key];
+            if (token == null)
+            { return defaultValue; }
+            return (T)Convert.ChangeType(token, typeof(T));
+        }
 
         public void chooseID(Random randomGenerator)
         {
@@ -83,7 +94,7 @@ namespace Planner
 
         public override string ToString()
         {
-            return title;
+            return title + '(' +id + ')';
         }
     }
 }

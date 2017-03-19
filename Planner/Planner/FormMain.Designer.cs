@@ -38,8 +38,9 @@
             this.importFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.exportFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.contextTaskTree = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItemDelete = new System.Windows.Forms.ToolStripMenuItem();
             this.taskTree = new Planner.TaskTree();
+            this.toolStripMenuItemRename = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.contextTaskTree.SuspendLayout();
             this.SuspendLayout();
@@ -71,7 +72,7 @@
             this.fileToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(756, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(643, 24);
             this.menuStrip1.TabIndex = 4;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -112,34 +113,44 @@
             // contextTaskTree
             // 
             this.contextTaskTree.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.deleteToolStripMenuItem});
+            this.toolStripMenuItemRename,
+            this.toolStripMenuItemDelete});
             this.contextTaskTree.Name = "contextTaskTree";
-            this.contextTaskTree.Size = new System.Drawing.Size(108, 26);
+            this.contextTaskTree.Size = new System.Drawing.Size(153, 70);
             // 
-            // deleteToolStripMenuItem
+            // toolStripMenuItemDelete
             // 
-            this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
-            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
-            this.deleteToolStripMenuItem.Text = "Delete";
-            this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
+            this.toolStripMenuItemDelete.Name = "toolStripMenuItemDelete";
+            this.toolStripMenuItemDelete.Size = new System.Drawing.Size(152, 22);
+            this.toolStripMenuItemDelete.Text = "Delete";
+            this.toolStripMenuItemDelete.Click += new System.EventHandler(this.toolStripMenuItemDelete_Click);
             // 
             // taskTree
             // 
             this.taskTree.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.taskTree.AutoScroll = true;
+            this.taskTree.AutoSize = true;
             this.taskTree.Location = new System.Drawing.Point(12, 56);
             this.taskTree.Name = "taskTree";
-            this.taskTree.Size = new System.Drawing.Size(732, 388);
+            this.taskTree.Size = new System.Drawing.Size(619, 361);
             this.taskTree.TabIndex = 3;
+            this.taskTree.TextChanged += new System.EventHandler<Planner.TextChangedEventArgs>(this.taskTree_TextChanged);
             this.taskTree.MouseClick += new System.Windows.Forms.MouseEventHandler(this.taskTree_MouseClick);
-            this.taskTree.TextChanged += new System.EventHandler<TextChangedEventArgs>(this.taskTree_TextChanged);
+            // 
+            // toolStripMenuItemRename
+            // 
+            this.toolStripMenuItemRename.Name = "toolStripMenuItemRename";
+            this.toolStripMenuItemRename.Size = new System.Drawing.Size(152, 22);
+            this.toolStripMenuItemRename.Text = "Rename";
+            this.toolStripMenuItemRename.Click += new System.EventHandler(this.toolStripMenuItemRename_Click);
             // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(756, 456);
+            this.ClientSize = new System.Drawing.Size(643, 429);
             this.Controls.Add(this.taskTree);
             this.Controls.Add(this.buttonNewSubtask);
             this.Controls.Add(this.buttonNewTask);
@@ -166,7 +177,8 @@
         private System.Windows.Forms.OpenFileDialog importFileDialog;
         private System.Windows.Forms.SaveFileDialog exportFileDialog;
         private System.Windows.Forms.ContextMenuStrip contextTaskTree;
-        private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemDelete;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemRename;
     }
 }
 

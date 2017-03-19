@@ -46,7 +46,6 @@ namespace TaskFunctions
         }
         public void TaskAdd(Task task, Task parentTask = null)
         {
-            //tasks.Add(task,parentTask);
             JObject obj = new JObject();
             obj.Add("type", "AddTask");
             if (parentTask != null)
@@ -101,13 +100,21 @@ namespace TaskFunctions
         private void HandleData(JObject obj)
         {
             string type = (string)obj["type"];
-            Planner.Task task;
+            Task task;
             switch (type)
             {
                 case "AddTask":
                     task = Task.Parse((JObject)obj["task"]);
-                    tasks.Add(task);
-                    Console.WriteLine("made a new task: " + task.title + "(" + task.ID + ")");
+                    string parentTask = (string)obj["parent"];
+                    if (parentTask != null)
+                    {
+                        tasks.Add(task, parentTask);
+                    }
+                    else
+                    {
+                        tasks.Add(task);
+                    }
+                    Console.WriteLine("Made a new task: " + task.title + "(" + task.ID + ")");
                     OnRecievedTask(task);
                     break;
                 case "RenameTask":

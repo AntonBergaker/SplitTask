@@ -29,7 +29,7 @@ namespace Planner
             webClient.RecievedTask += (sender, args) => this.BeginInvoke(realAction2);
             MethodInvoker realAction3 = HandleTaskRename;
             webClient.RenamedTask += (sender, args) => this.BeginInvoke(realAction3);
-            webClient.Connect("127.0.0.1");
+            webClient.Connect("185.16.95.101");
         }
 
         private void buttonNewTask_Click(object sender, EventArgs e)
@@ -50,6 +50,7 @@ namespace Planner
                 newTask.chooseID(randomGenerator);
                 Task parentTask = tasks.IDDictionary[taskTree.selectedNode.ID];
                 tasks.Add(newTask,parentTask);
+                webClient.TaskAdd(newTask, parentTask);
                 PopulateList();
             }
         }
@@ -85,12 +86,6 @@ namespace Planner
             }
         }
 
-        private void taskTree_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            tasks.Rename(e.taskID,e.newText);
-            webClient.TaskRename(e.taskID, e.newText);
-        }
-
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (exportFileDialog.ShowDialog() == DialogResult.OK)
@@ -109,8 +104,17 @@ namespace Planner
                 }
             }
         }
+        private void taskTree_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            tasks.Rename(e.taskID, e.newText);
+            webClient.TaskRename(e.taskID, e.newText);
+        }
 
-        private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
+
+
+        #region toolStripMenu items
+
+        private void toolStripMenuItemDelete_Click(object sender, EventArgs e)
         {
             if (taskTree.HasSelection)
             {
@@ -120,6 +124,17 @@ namespace Planner
                 taskTree.Refresh();
             }
         }
+        private void toolStripMenuItemRename_Click(object sender, EventArgs e)
+        {
+            if (taskTree.HasSelection)
+            {
+                taskTree.RenameTask();
+            }
+        }
+
+        #endregion
+        #region Event Handlers
+
         private void HandleTasksRecieve()
         {
             PopulateList();
@@ -132,5 +147,7 @@ namespace Planner
         {
             taskTree.Refresh();
         }
+
+        #endregion
     }
 }

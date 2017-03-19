@@ -64,6 +64,14 @@ namespace Planner
                 IDDictionary.Add(newTask.ID, newTask);
             }
         }
+        public void Add(Task newTask, string parentTaskID)
+        {
+            if (IDDictionary.ContainsKey(parentTaskID))
+            {
+                IDDictionary[parentTaskID].subtasks.Add(newTask);
+                IDDictionary.Add(newTask.ID, newTask);
+            }
+        }
         public void Rename(string ID, string name)
         {
             if (IDDictionary.ContainsKey(ID))
