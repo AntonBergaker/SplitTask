@@ -1,0 +1,50 @@
+﻿<Window x:Class="TaskPlanner.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TaskPlanner"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="659.803" Width="747.549"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal" 
+        TextOptions.TextRenderingMode="Auto"        
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{DynamicResource MaterialDesignFont}">
+    <Grid>
+        <Grid Margin="0,0,434,0" Grid.Column="0">
+            <Rectangle Fill="#FFF4F4F5" HorizontalAlignment="Left" Stroke="Black" Width="306" StrokeThickness="0">
+                <Rectangle.Effect>
+                    <DropShadowEffect Opacity="0.1" Direction="0" BlurRadius="10"/>
+                </Rectangle.Effect>
+            </Rectangle>
+            <TextBox x:Name="textBoxTaskName" HorizontalAlignment="Left" Height="41" Margin="10,94,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="279" FontSize="17" SelectionOpacity="-2" ToolTip="Task Name"/>
+            <TextBox x:Name="textBoxTaskDescription" HorizontalAlignment="Left" Height="55" Margin="10,149,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="279" ToolTip="Task Description"/>
+            <DatePicker x:Name="datePickerDue" HorizontalAlignment="Left" Margin="59,223,0,0" VerticalAlignment="Top" Height="30" Width="230" SelectedDateFormat="Long"/>
+            <TextBlock x:Name="textBlockDue" HorizontalAlignment="Left" Margin="10,237,0,0" TextWrapping="Wrap" Text="Due:" VerticalAlignment="Top"/>
+        </Grid>
+        <Grid Margin="306,0,0,0" Grid.Column="2">
+            <Button x:Name="buttonNewTask" Content="New Task" HorizontalAlignment="Left" Margin="10,64,0,0" VerticalAlignment="Top" Width="104" Height="33" FontFamily="Roboto" Click="buttonNewTask_Click"/>
+            <Button x:Name="buttonNewSubtask" Content="New Subtask" HorizontalAlignment="Left" Margin="137,64,0,0" VerticalAlignment="Top" Width="120" Height="33" FontFamily="Roboto" Click="buttonNewSubtask_Click"/>
+            <local:TaskTreeNodeControl HorizontalAlignment="Left" Margin="10,119,0,0" VerticalAlignment="Top" Height="28"/>
+            <local:TaskTreeNodeControl HorizontalAlignment="Left" Margin="33,152,0,0" VerticalAlignment="Top" Height="28"/>
+            <local:TaskTreeNodeControl HorizontalAlignment="Left" Margin="33,180,0,0" VerticalAlignment="Top" Height="28"/>
+            <local:TaskTreeNodeControl HorizontalAlignment="Left" Margin="10,208,-10,0" VerticalAlignment="Top" Height="28"/>
+        </Grid>
+        <Expander x:Name="expander" Header="File" HorizontalAlignment="Left" Margin="0,-3,0,0" VerticalAlignment="Top" Background="{x:Null}" Panel.ZIndex="5">
+            <Grid Background="#FFE5E5E5"/>
+        </Expander>
+        <Rectangle Fill="#FF4CAF50" Stroke="Black" StrokeThickness="0" VerticalAlignment="Top" Height="45">
+            <Rectangle.Effect>
+                <DropShadowEffect BlurRadius="10" Direction="270" Opacity="0.1"/>
+            </Rectangle.Effect>
+        </Rectangle>
+        <Menu x:Name="menuFile" HorizontalAlignment="Left" Height="124" VerticalAlignment="Top" Width="110" RenderTransformOrigin="0.899,0.533" Panel.ZIndex="10">
+            <MenuItem x:Name="menuItemOpen" Header="Open" Margin="0" Click="MenuItemOpen_Click"/>
+        </Menu>
+        <GridSplitter x:Name="gridSplitter" Grid.Column="1" HorizontalAlignment="Left" Margin="300,45,0,0" Width="6" ResizeBehavior="CurrentAndNext" ShowsPreview="True"/>
+    </Grid>
+</Window>

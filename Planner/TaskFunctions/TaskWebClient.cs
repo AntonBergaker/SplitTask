@@ -37,13 +37,28 @@ namespace TaskFunctions
         {
             client = new TcpClient();
             this.address = IPAddress.Parse(address);
-            client.Connect(this.address, 5171);
-            stream = client.GetStream();
-
-            Thread mainThread = new Thread(Handshake);
+            Thread mainThread = new Thread(ConnectToClient);
             mainThread.Start();
-            
         }
+        private void ConnectToClient()
+        {
+            while (true)
+            {
+                try
+                {
+                    client.Connect(address, 5171);
+                    stream = client.GetStream();
+
+                    Handshake();
+                }
+                catch (Exception ex)
+                {
+                    System.Threading.Thread.Sleep(5000);
+                }
+            }
+        }
+
+
         public void TaskAdd(Task task, Task parentTask = null)
         {
             JObject obj = new JObject();
@@ -130,17 +145,21 @@ namespace TaskFunctions
 
         private void Handshake()
         {
-            SendData("Ey waddup?");
+            SendData("Ey waddup?",true);
             string message = RecieveDataString();
             tasks.ImportText(message);
             OnRecievedTasks();
+            handShaken = true;
             MainLoop();
         }
-        private void SendData(string data)
+        private void SendData(string data, bool forceSend = false)
         {
-            byte[] sendBytes = Encoding.UTF8.GetBytes(data).Concat(terminationBytes).ToArray();
-            stream.Write(sendBytes, 0, sendBytes.Length);
-            stream.Flush();
+            if (handShaken || forceSend)
+            {
+                byte[] sendBytes = Encoding.UTF8.GetBytes(data).Concat(terminationBytes).ToArray();
+                stream.Write(sendBytes, 0, sendBytes.Length);
+                stream.Flush();
+            }
         }
         private string RecieveDataString()
         { return Encoding.UTF8.GetString(RecieveData()); }
