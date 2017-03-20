@@ -19,17 +19,20 @@ namespace TaskFunctions
         private TcpClient client;
         private NetworkStream stream;
         private bool handShaken;
+        private bool running;
         private readonly byte[] terminationBytes = new byte[] { 0x15, 0xba, 0xfc, 0x61 };
 
         public TaskWebClient(TaskCollection tasks)
         {
             this.tasks = tasks;
             handShaken = false;
+            running = true;
         }
         public TaskWebClient(TaskCollection tasks, string address)
         {
             this.tasks = tasks;
             handShaken = false;
+            running = true;
             Connect(address);
         }
 
@@ -42,7 +45,7 @@ namespace TaskFunctions
         }
         private void ConnectToClient()
         {
-            while (true)
+            while (running)
             {
                 try
                 {
@@ -87,7 +90,7 @@ namespace TaskFunctions
 
         private void MainLoop()
         {
-            while (true)
+            while (running)
             {
                 if (stream.DataAvailable)
                 {
@@ -141,7 +144,10 @@ namespace TaskFunctions
                     break;
             }
         }
-
+        public void RequestClose()
+        {
+            running = false;
+        }
 
         private void Handshake()
         {

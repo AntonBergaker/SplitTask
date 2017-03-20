@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -37,8 +36,8 @@ namespace TaskPlanner
             expander.Content = menuFile;
 
             Control[] sideWindow = new Control[] { textBoxTaskName, textBoxTaskDescription, datePickerDue};
-            foreach (Control c in sideWindow)
-            { c.IsEnabled = false; }
+            //foreach (Control c in sideWindow)
+            //{ c.IsEnabled = false; }
 
             webClient = new TaskWebClient(tasks);
             Action realAction1 = HandleTasksRecieve;
@@ -57,44 +56,24 @@ namespace TaskPlanner
             task.chooseID(randomGenerator);
             tasks.Add(task);
             webClient.TaskAdd(task);
-            PopulateList();
-            //taskTree.selectedNode = taskTree.nodes.Last();
-           // taskTree.RenameTask();
+            taskTree.AddNode(task);
         }
 
         private void buttonNewSubtask_Click(object sender, RoutedEventArgs e)
         {
-            /*
-            if (taskTree.HasSelection)
-            {
-                Task newTask = new Task("subtask!");
-                newTask.chooseID(randomGenerator);
-                Task parentTask = tasks.IDDictionary[taskTree.selectedNode.ID];
-                tasks.Add(newTask, parentTask);
-                webClient.TaskAdd(newTask, parentTask);
-                PopulateList();
-            }*/
+
         }
 
 
         private void PopulateList()
         {
-            /*List<TaskTreeNode> nodes = taskTree.nodes;
-            nodes.Clear();
+            taskTree.ClearAll();
             foreach (Task t in tasks.tasks)
             {
-                nodes.Add(BuildNodeFromTask(t));
+                taskTree.AddNode(t);
             }
-            taskTree.Refresh();*/
 
         }
-        /*private TaskTreeNode BuildNodeFromTask(Task task)
-        {
-            TaskTreeNode node = new TaskTreeNode(task);
-            foreach (Task t in task.subtasks)
-            { node.children.Add(BuildNodeFromTask(t)); }
-            return node;
-        }*/
 
         #region Event Handlers
 
@@ -118,7 +97,20 @@ namespace TaskPlanner
             System.Windows.Forms.OpenFileDialog dialog = new System.Windows.Forms.OpenFileDialog();
             dialog.Filter = "Tasklist Files|*.tlf";
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            { tasks.ImportFile(dialog.FileName); }
+            {
+                tasks.ImportFile(dialog.FileName);
+                PopulateList();
+            }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            webClient.RequestClose();
+        }
+
+        private void taskTree_SelectionChanged_1(object sender, RoutedEventArgs e)
+        {
+            textBoxTaskName.Text = taskTree.selectedNode.task.title;
         }
     }
 }

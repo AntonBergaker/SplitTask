@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Planner
 {
-    class Task
+    public class Task
     {
         public List<Task> subtasks = new List<Task>();
 
@@ -21,6 +21,7 @@ namespace Planner
         public string title = "";
         public string description = "";
         public bool isFolder = false;
+        public bool isCompleted = false;
         public Task parent = null;
         public DateTime? timeCreated;
         public DateTime? timeCompleted;
@@ -53,6 +54,7 @@ namespace Planner
 
             JArray array = new JArray(sublist);
             obj.Add("subtasks", array);
+            obj.Add("done", isCompleted);
             obj.Add("description", description);
             obj.Add("created", timeCreated);
             obj.Add("folder", isFolder);
@@ -70,6 +72,7 @@ namespace Planner
             { task.subtasks.Add(Parse(j)); }
 
             task.description = TryReadValue("description",obj,"");
+            task.isCompleted = TryReadValue("done", obj, false);
             task.isFolder = TryReadValue("folder", obj , false);
             task.timeCreated = TryReadValue<DateTime?>("created", obj,null);
             task.timeDue = TryReadValue<DateTime?>("due", obj, null);
