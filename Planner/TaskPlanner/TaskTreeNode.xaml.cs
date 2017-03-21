@@ -43,5 +43,41 @@ namespace TaskPlanner
         {
             background.Fill = new SolidColorBrush(Colors.LightGray);
         }
+        public void Deselect()
+        {
+            background.Fill = new SolidColorBrush(Colors.Transparent);
+        }
+
+        private void textBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            OnSelectionChanged();
+        }
+        private void grid_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            OnSelectionChanged();
+        }
+
+        private void UserControl_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            textBox.Focus();
+            textBox.SelectAll();
+            e.Handled = true;
+        }
+
+        #region SelectionChanged
+        public static readonly RoutedEvent SelectionChangedEvent = EventManager.RegisterRoutedEvent(
+            "SelectionChanged", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(TaskTreeNode));
+        public event RoutedEventHandler SelectionChanged
+        {
+            add { AddHandler(SelectionChangedEvent, value); }
+            remove { RemoveHandler(SelectionChangedEvent, value); }
+        }
+
+        private void OnSelectionChanged()
+        {
+            RoutedEventArgs e = new RoutedEventArgs(TaskTreeNode.SelectionChangedEvent);
+            RaiseEvent(e);
+        }
+        #endregion
     }
 }

@@ -19,6 +19,7 @@
             <Expander x:Name="expander" Header="File" HorizontalAlignment="Left" Margin="0,-3,0,0" VerticalAlignment="Top" Background="{x:Null}" Panel.ZIndex="5" Foreground="White">
                 <Grid Background="#FFE5E5E5"/>
             </Expander>
+
             <Rectangle Fill="#FF4CAF50" Stroke="Black" StrokeThickness="0" VerticalAlignment="Top" Height="90" Panel.ZIndex="3">
                 <Rectangle.Effect>
                     <DropShadowEffect BlurRadius="20" Direction="270" Opacity="0.1"/>
@@ -29,38 +30,44 @@
                     <DropShadowEffect BlurRadius="20" Direction="270" Opacity="0.1"/>
                 </Rectangle.Effect>
             </Rectangle>
-            <Menu x:Name="menuFile" HorizontalAlignment="Left" Height="124" VerticalAlignment="Top" Width="110" RenderTransformOrigin="0.899,0.533" Panel.ZIndex="10" Margin="0,0,0,-79">
-                <MenuItem x:Name="menuItemOpen" Header="Open" Margin="0" Click="MenuItemOpen_Click"/>
-            </Menu>
+            <StackPanel x:Name="menuFile" HorizontalAlignment="Left" Height="124" VerticalAlignment="Top" Width="110" RenderTransformOrigin="0.899,0.533" Panel.ZIndex="10" Background="White">
+                <Button x:Name="menuItemOpen" Style="{DynamicResource MaterialDesignFlatButton}" Margin="0" Click="MenuItemOpen_Click" Panel.ZIndex="11" Content="Open" Foreground="#BB000000"/>
+            </StackPanel>
         </Grid>
-        <Grid Grid.Row="1">
+        <Grid x:Name="mainGrid" Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
+                <ColumnDefinition Width="320" MinWidth="100"/>
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Grid Grid.Column="0" Panel.ZIndex="3">
+            <Grid x:Name="sideWindow" Grid.Column="0" Panel.ZIndex="3">
                 <Rectangle Fill="White" StrokeThickness="0">
                     <Rectangle.Effect>
                         <DropShadowEffect BlurRadius="15" Direction="0" ShadowDepth="10" Opacity="0.15"/>
                     </Rectangle.Effect>
                 </Rectangle>
-                <TextBox x:Name="textBoxTaskName" Height="41" Margin="40,127,40,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="17" SelectionOpacity="-2" ToolTip="Task Name"/>
-                <TextBox x:Name="textBoxTaskDescription" Height="55" Margin="40,168,40,0" TextWrapping="Wrap" VerticalAlignment="Top" ToolTip="Task Description"/>
-                <DatePicker x:Name="datePickerDue" Margin="90,237,40,0" VerticalAlignment="Top" Height="30" SelectedDateFormat="Long"/>
-                <TextBlock x:Name="textBlockDue" HorizontalAlignment="Left" Margin="50,251,0,0" TextWrapping="Wrap" Text="Due:" VerticalAlignment="Top"/>
+                <ScrollViewer FlowDirection="RightToLeft" VerticalScrollBarVisibility="Auto">
+                    <StackPanel VerticalAlignment="Top" FlowDirection="LeftToRight">
+                        <TextBox x:Name="textBoxTaskName" Height="auto" Margin="40,127,40,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="17" ToolTip="Task Name"/>
+                        <Separator Margin="0,-1,0,0" VerticalAlignment="Top"/>
+                        <TextBlock x:Name="textBlockDescription" Text="Notes" VerticalAlignment="Top" Margin="40,40,40,0" HorizontalAlignment="Left" Foreground="#99000000" FontSize="10"/>
+                        <TextBox x:Name="textBoxTaskDescription" Height="auto" Margin="40,0,40,0" TextWrapping="Wrap" VerticalAlignment="Top" ToolTip="Task Description"/>
+                        <TextBlock x:Name="textBlockDue" Text="Due" VerticalAlignment="Top" Margin="40,40,40,0" HorizontalAlignment="Left" Foreground="#99000000" FontSize="10"/>
+                        <DatePicker x:Name="datePickerDue" VerticalAlignment="Top" Height="30" SelectedDateFormat="Long" Text="2017-02-02" Margin="40,0"/>
+                    </StackPanel>
+                </ScrollViewer>
             </Grid>
-            <GridSplitter Grid.Column="1"
+            <GridSplitter x:Name="gridSplitter" Grid.Column="1"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Stretch"
-                        Background="Black" 
+                        Background="#BB000000" 
                         ShowsPreview="True"
-                        Width="3" Opacity="0.2"
+                        Width="3" Opacity="0.2" Margin="0,90,0,0" Foreground="#66000000"
                         />
             <Grid Grid.Column="2">
                 <Button x:Name="buttonNewTask" Content="New Task" HorizontalAlignment="Left" Margin="20,104,0,0" VerticalAlignment="Top" Width="104" Height="33" FontFamily="Roboto" Click="buttonNewTask_Click"/>
-                <Button x:Name="buttonNewSubtask" Content="New Subtask" HorizontalAlignment="Left" Margin="145,104,0,0" VerticalAlignment="Top" Width="120" Height="33" FontFamily="Roboto" Click="buttonNewSubtask_Click"/>
-                <local:TaskTree x:Name="taskTree" Margin="0,157,0,2" SelectionChanged="taskTree_SelectionChanged_1"/>
+                <Button x:Name="buttonNewSubtask" Content="New Subtask" HorizontalAlignment="Left" Margin="145,104,0,0" VerticalAlignment="Top" Width="120" Height="33" FontFamily="Roboto" Click="buttonNewSubtask_Click" IsEnabled="False"/>
+                <local:TaskTree x:Name="taskTree" Margin="0,157,0,2" SelectionChanged="taskTree_SelectionChanged"/>
             </Grid>
         </Grid>
     </Grid>

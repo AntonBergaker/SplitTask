@@ -22,15 +22,18 @@ namespace TaskPlanner
     {
         List<TaskTreeNode> visibleTasks;
         List<TaskTreeNode> tasks;
-        public TaskTreeNode selectedNode;
+        public List<TaskTreeNode> selectedNodes;
+        Dictionary<string,TaskTreeNode> nodeDictionary;
 
-        public bool HasSelection { get { return selectedNode != null; } }
+        public bool HasSelection { get { return selectedNodes.Count > 0; } }
 
         public TaskTree()
         {
             InitializeComponent();
             tasks = new List<TaskTreeNode>();
             visibleTasks = new List<TaskTreeNode>();
+            selectedNodes = new List<TaskTreeNode>();
+            nodeDictionary = new Dictionary<string, TaskTreeNode>();
         }
         public void AddNode(Task task)
         {
@@ -40,24 +43,40 @@ namespace TaskPlanner
 
         public void AddNode(Task task, string parentTask)
         {
-
+            TaskTreeNode parentNode = nodeDictionary[parentTask];
+            TaskTreeNode node = new TaskTreeNode(task, parentNode.depth+1);
+            parentNode.children.Add(node);
+            NodeAddToTree(node,parentNode);
+        }
+        private void NodeAddToTree(TaskTreeNode node, TaskTreeNode parentNode)
+        {
+            int index = stackPanel.Children.IndexOf(parentNode)+parentNode.children.Count;
+            stackPanel.Children.Insert(index,node);
+            nodeDictionary[node.ID] = node;
+            node.SelectionChanged += Node_SelectionChanged;
+            foreach (TaskTreeNode n in node.children)
+            { NodeAddToTree(n, node); }
         }
 
         private void NodeAddToTree(TaskTreeNode node)
         {
             stackPanel.Children.Add(node);
-            node.MouseDown += Node_MouseDown;
+            nodeDictionary[node.ID] = node;
+            node.SelectionChanged += Node_SelectionChanged;
             foreach (TaskTreeNode n in node.children)
             { NodeAddToTree(n); }
         }
         public void Select(TaskTreeNode node)
         {
-            selectedNode = node;
-            selectedNode.Select();
+            foreach (TaskTreeNode n in selectedNodes)
+            { n.Deselect(); }
+            selectedNodes.Clear();
+            selectedNodes.Add(node);
+            node.Select();
             OnSelectionChanged();
         }
 
-        private void Node_MouseDown(object sender, MouseButtonEventArgs e)
+        private void Node_SelectionChanged(object sender, RoutedEventArgs e)
         {
             Select((TaskTreeNode)sender);
         }
@@ -99,6 +118,7 @@ namespace TaskPlanner
 
 
         #region events
+        #region SelectionChanged
         public static readonly RoutedEvent SelectionChangedEvent = EventManager.RegisterRoutedEvent(
             "SelectionChanged", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(TaskTree));
         public event RoutedEventHandler SelectionChanged
@@ -112,6 +132,7 @@ namespace TaskPlanner
             RoutedEventArgs e = new RoutedEventArgs(TaskTree.SelectionChangedEvent);
             RaiseEvent(e);
         }
+        #endregion
         #endregion
     }
 }

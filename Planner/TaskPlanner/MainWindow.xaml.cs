@@ -24,6 +24,7 @@ namespace TaskPlanner
         public Random randomGenerator = new Random();
         TaskCollection tasks = new TaskCollection();
         TaskWebClient webClient;
+        Control[] sideWindowControls;
 
         public MainWindow()
         {
@@ -35,9 +36,7 @@ namespace TaskPlanner
             parentPanel.Children.Remove(menuFile);
             expander.Content = menuFile;
 
-            Control[] sideWindow = new Control[] { textBoxTaskName, textBoxTaskDescription, datePickerDue};
-            //foreach (Control c in sideWindow)
-            //{ c.IsEnabled = false; }
+            sideWindowControls = new Control[] { textBoxTaskName, textBoxTaskDescription, datePickerDue};
 
             webClient = new TaskWebClient(tasks);
             Action realAction1 = HandleTasksRecieve;
@@ -48,11 +47,22 @@ namespace TaskPlanner
             webClient.RenamedTask += (sender, args) => dispatcher.BeginInvoke(realAction3);
             webClient.Connect("185.16.95.101");
 
+            gridSplitter.DragDelta += SplitterNameDragDelta;
         }
+
+        private void SplitterNameDragDelta(object sender, System.Windows.Controls.Primitives.DragDeltaEventArgs e)
+        {
+            double width = mainGrid.ColumnDefinitions[0].ActualWidth + e.HorizontalChange;
+            if (width > 10)
+            {
+                mainGrid.ColumnDefinitions[0].Width = new GridLength(mainGrid.ColumnDefinitions[0].ActualWidth + e.HorizontalChange);
+            }
+        }
+
 
         private void buttonNewTask_Click(object sender, RoutedEventArgs e)
         {
-            Planner.Task task = new Planner.Task("");
+            Task task = new Task("");
             task.chooseID(randomGenerator);
             tasks.Add(task);
             webClient.TaskAdd(task);
@@ -61,9 +71,15 @@ namespace TaskPlanner
 
         private void buttonNewSubtask_Click(object sender, RoutedEventArgs e)
         {
-
+            if (taskTree.HasSelection)
+            {
+                Task task = new Task("");
+                task.chooseID(randomGenerator);
+                tasks.Add(task);
+                webClient.TaskAdd(task);
+                taskTree.AddNode(task,taskTree.selectedNodes[0].ID);
+            }
         }
-
 
         private void PopulateList()
         {
@@ -108,9 +124,37 @@ namespace TaskPlanner
             webClient.RequestClose();
         }
 
-        private void taskTree_SelectionChanged_1(object sender, RoutedEventArgs e)
+        private void taskTree_SelectionChanged(object sender, RoutedEventArgs e)
         {
-            textBoxTaskName.Text = taskTree.selectedNode.task.title;
+            if (taskTree.selectedNodes.Count == 1)
+            {
+                SideWindowUpdate(taskTree.selectedNodes[0].task);
+                buttonNewSubtask.IsEnabled = true;
+            }
+            else
+            {
+                SideWindowClear();
+                buttonNewSubtask.IsEnabled = false;
+            }
+        }
+        private void SideWindowClear()
+        {
+            textBoxTaskName.Text = "";
+            textBoxTaskDescription.Text = "";
+            datePickerDue.SelectedDate = null;
+            SideWindowEnabled(false);
+        }
+        private void SideWindowUpdate(Task task)
+        {
+            textBoxTaskName.Text = task.title;
+            textBoxTaskDescription.Text = task.description;
+            datePickerDue.SelectedDate = task.timeDue;
+            SideWindowEnabled(true);
+        }
+        private void SideWindowEnabled(bool enabled)
+        {
+            foreach (Control c in sideWindowControls)
+             { c.IsEnabled = enabled; }
         }
     }
 }
