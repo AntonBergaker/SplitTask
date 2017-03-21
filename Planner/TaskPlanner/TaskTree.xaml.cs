@@ -46,6 +46,7 @@ namespace TaskPlanner
             TaskTreeNode parentNode = nodeDictionary[parentTask];
             TaskTreeNode node = new TaskTreeNode(task, parentNode.depth+1);
             parentNode.children.Add(node);
+            parentNode.ExpanderRefresh();
             NodeAddToTree(node,parentNode);
         }
         private void NodeAddToTree(TaskTreeNode node, TaskTreeNode parentNode)
@@ -53,7 +54,7 @@ namespace TaskPlanner
             int index = stackPanel.Children.IndexOf(parentNode)+parentNode.children.Count;
             stackPanel.Children.Insert(index,node);
             nodeDictionary[node.ID] = node;
-            node.SelectionChanged += Node_SelectionChanged;
+            AddEvents(node);
             foreach (TaskTreeNode n in node.children)
             { NodeAddToTree(n, node); }
         }
@@ -62,7 +63,7 @@ namespace TaskPlanner
         {
             stackPanel.Children.Add(node);
             nodeDictionary[node.ID] = node;
-            node.SelectionChanged += Node_SelectionChanged;
+            AddEvents(node);
             foreach (TaskTreeNode n in node.children)
             { NodeAddToTree(n); }
         }
@@ -75,10 +76,25 @@ namespace TaskPlanner
             node.Select();
             OnSelectionChanged();
         }
+        private void AddEvents(TaskTreeNode node)
+        {
+            node.SelectionChanged += Node_SelectionChanged;
+            node.TextUpdated += Node_TextUpdated;
+            node.CheckUpdated += Node_CheckUpdated;
+        }
+
+        private void Node_CheckUpdated(object sender, CheckUpdatedEventArgs e)
+        {
+            OnCheckUpdated(e);
+        }
 
         private void Node_SelectionChanged(object sender, RoutedEventArgs e)
         {
             Select((TaskTreeNode)sender);
+        }
+        private void Node_TextUpdated(object sender, TextUpdatedEventArgs e)
+        {
+            OnTextUpdated(e);
         }
 
         public void RenameTask(string taskID)
@@ -117,7 +133,7 @@ namespace TaskPlanner
         }
 
 
-        #region events
+
         #region SelectionChanged
         public static readonly RoutedEvent SelectionChangedEvent = EventManager.RegisterRoutedEvent(
             "SelectionChanged", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(TaskTree));
@@ -133,6 +149,41 @@ namespace TaskPlanner
             RaiseEvent(e);
         }
         #endregion
+        #region TextUpdated
+        public delegate void TextUpdatedEventHandler(object sender, TextUpdatedEventArgs e);
+        public static readonly RoutedEvent TextUpdatedEvent = EventManager.RegisterRoutedEvent(
+            "TextUpdated", RoutingStrategy.Bubble, typeof(TextUpdatedEventHandler), typeof(TaskTree));
+        public event TextUpdatedEventHandler TextUpdated
+        {
+            add { AddHandler(TextUpdatedEvent, value); }
+            remove { RemoveHandler(TextUpdatedEvent, value); }
+        }
+
+        private void OnTextUpdated(TextUpdatedEventArgs e)
+        {
+            TextUpdatedEventArgs ex = new TextUpdatedEventArgs(TaskTree.TextUpdatedEvent);
+            ex.newName = e.newName;
+            ex.task = e.task;
+            RaiseEvent(ex);
+        }
+        #endregion
+        #region CheckUpdated
+        public delegate void CheckUpdatedEventHandler(object sender, CheckUpdatedEventArgs e);
+        public static readonly RoutedEvent CheckUpdatedEvent = EventManager.RegisterRoutedEvent(
+            "CheckUpdated", RoutingStrategy.Bubble, typeof(CheckUpdatedEventHandler), typeof(TaskTree));
+        public event CheckUpdatedEventHandler CheckUpdated
+        {
+            add { AddHandler(CheckUpdatedEvent, value); }
+            remove { RemoveHandler(CheckUpdatedEvent, value); }
+        }
+
+        private void OnCheckUpdated(CheckUpdatedEventArgs e)
+        {
+            CheckUpdatedEventArgs ev = new CheckUpdatedEventArgs(TaskTree.CheckUpdatedEvent);
+            ev.task = e.task;
+            ev.check = e.check;
+            RaiseEvent(ev);
+        }
         #endregion
     }
 }

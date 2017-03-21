@@ -26,6 +26,14 @@ namespace Planner
             if (IDDictionary.ContainsKey(taskID))
             { Remove(IDDictionary[taskID]); }
         }
+        public void Check(string taskID, bool isChecked)
+        {
+            if (IDDictionary.ContainsKey(taskID))
+            {
+                IDDictionary[taskID].isCompleted = isChecked;
+                IDDictionary[taskID].timeCompleted = DateTime.Now;
+            }
+        }
 
         public void Remove(Task task)
         {

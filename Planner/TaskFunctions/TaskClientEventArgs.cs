@@ -20,11 +20,17 @@ namespace TaskFunctions
     class RecievedTaskEventArgs : EventArgs
     {
         public Task task { get; set; }
+        public string parentTask { get; set; }
     }
     class RenamedTaskEventArgs : EventArgs
     {
         public string taskID { get; set; }
         public string newName { get; set; }
+    }
+    class CheckedTaskEventArgs : EventArgs
+    {
+        public string taskID { get; set; }
+        public bool check { get; set; }
     }
     class RecievedJsonEventArgs : EventArgs
     {

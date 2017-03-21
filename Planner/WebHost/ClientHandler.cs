@@ -91,6 +91,13 @@ namespace WebHost
                     Console.WriteLine("Renamed task: " + newName + "(" + taskID + ")");
                     OnRecievedJson(obj,true);
                     break;
+                case "CheckTask":
+                    taskID = (string)obj["ID"];
+                    bool check = (bool)obj["check"];
+                    tasks.Check(taskID, check);
+                    Console.WriteLine("{0} the task: " + taskID, check ? "Checked" : "Unchecked");
+                    OnRecievedJson(obj, true);
+                    break;
             }
         }
 

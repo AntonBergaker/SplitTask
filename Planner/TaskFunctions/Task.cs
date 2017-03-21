@@ -22,7 +22,6 @@ namespace Planner
         public string description = "";
         public bool isFolder = false;
         public bool isCompleted = false;
-        public Task parent = null;
         public DateTime? timeCreated;
         public DateTime? timeCompleted;
         public DateTime? timeDue;

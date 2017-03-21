@@ -24,6 +24,7 @@ namespace TaskPlanner
         public Random randomGenerator = new Random();
         TaskCollection tasks = new TaskCollection();
         TaskWebClient webClient;
+        Task sideWindowTask;
         Control[] sideWindowControls;
 
         public MainWindow()
@@ -39,15 +40,34 @@ namespace TaskPlanner
             sideWindowControls = new Control[] { textBoxTaskName, textBoxTaskDescription, datePickerDue};
 
             webClient = new TaskWebClient(tasks);
-            Action realAction1 = HandleTasksRecieve;
-            webClient.RecievedTasks += (sender, args) => dispatcher.BeginInvoke(realAction1);
-            Action realAction2 = HandleTaskRecieve;
-            webClient.RecievedTask += (sender, args) => dispatcher.BeginInvoke(realAction2);
-            Action realAction3 = HandleTaskRename;
-            webClient.RenamedTask += (sender, args) => dispatcher.BeginInvoke(realAction3);
+            webClient.RecievedTasks += (sender, args) => dispatcher.BeginInvoke(
+                new Action(() => { HandleTasksRecieve(sender, args); }));
+            webClient.RecievedTask += (sender, args) => dispatcher.BeginInvoke(
+                new Action(() => { HandleTaskRecieve(sender, args); }));
+            webClient.RenamedTask += (sender, args) => dispatcher.BeginInvoke(
+                new Action(() => { HandleTaskRename(sender, args); }));
+            webClient.CheckedTask += (sender, args) => dispatcher.BeginInvoke(
+                new Action(() => { HandleTaskCheck(sender, args); }));
             webClient.Connect("185.16.95.101");
 
             gridSplitter.DragDelta += SplitterNameDragDelta;
+
+            taskTree.TextUpdated += TaskTree_TextUpdated;
+            taskTree.CheckUpdated += TaskTree_CheckUpdated;
+        }
+
+        private void TaskTree_CheckUpdated(object sender, CheckUpdatedEventArgs e)
+        {
+            webClient.TaskCheck(e.task.ID,e.check);
+            tasks.Check(e.task.ID,e.check);
+        }
+
+        private void TaskTree_TextUpdated(object sender, TextUpdatedEventArgs e)
+        {
+            webClient.TaskRename(e.task,e.newName);
+            tasks.Rename(e.task, e.newName);
+            if (sideWindowTask.ID == e.task.ID)
+            { SideWindowUpdate(e.task); }
         }
 
         private void SplitterNameDragDelta(object sender, System.Windows.Controls.Primitives.DragDeltaEventArgs e)
@@ -74,10 +94,11 @@ namespace TaskPlanner
             if (taskTree.HasSelection)
             {
                 Task task = new Task("");
+                Task parentTask = taskTree.selectedNodes[0].task;
                 task.chooseID(randomGenerator);
-                tasks.Add(task);
-                webClient.TaskAdd(task);
-                taskTree.AddNode(task,taskTree.selectedNodes[0].ID);
+                tasks.Add(task,parentTask);
+                webClient.TaskAdd(task,parentTask);
+                taskTree.AddNode(task,parentTask.ID);
             }
         }
 
@@ -91,19 +112,30 @@ namespace TaskPlanner
 
         }
 
-        #region Event Handlers
+        #region WebClient Event Handlers
 
-        private void HandleTasksRecieve()
+        private void HandleTasksRecieve(object sender, RecievedTasksEventArgs e)
         {
             PopulateList();
         }
-        private void HandleTaskRecieve()
+        private void HandleTaskCheck(object sender, CheckedTaskEventArgs e)
         {
-            PopulateList();
+
         }
-        private void HandleTaskRename()
+
+        private void HandleTaskRecieve(object sender, RecievedTaskEventArgs e)
         {
-            //taskTree.Refresh();
+            Task task = e.task;
+            string parent = e.parentTask;
+            if (parent == null)
+            { taskTree.AddNode(task);}
+            else
+            { taskTree.AddNode(task, parent); }
+            
+        }
+        private void HandleTaskRename(object sender, RenamedTaskEventArgs e)
+        {
+           
         }
 
         #endregion
@@ -146,6 +178,7 @@ namespace TaskPlanner
         }
         private void SideWindowUpdate(Task task)
         {
+            sideWindowTask = task;
             textBoxTaskName.Text = task.title;
             textBoxTaskDescription.Text = task.description;
             datePickerDue.SelectedDate = task.timeDue;

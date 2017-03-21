@@ -87,6 +87,14 @@ namespace TaskFunctions
             obj.Add("newName", newName);
             SendData(obj.ToString());
         }
+        public void TaskCheck(string taskID,bool check)
+        {
+            JObject obj = new JObject();
+            obj.Add("type", "CheckTask");
+            obj.Add("ID", taskID);
+            obj.Add("check", check);
+            SendData(obj.ToString());
+        }
 
         private void MainLoop()
         {
@@ -118,6 +126,7 @@ namespace TaskFunctions
         private void HandleData(JObject obj)
         {
             string type = (string)obj["type"];
+            string taskID;
             Task task;
             switch (type)
             {
@@ -133,14 +142,21 @@ namespace TaskFunctions
                         tasks.Add(task);
                     }
                     Console.WriteLine("Made a new task: " + task.title + "(" + task.ID + ")");
-                    OnRecievedTask(task);
+                    OnRecievedTask(task,parentTask);
                     break;
                 case "RenameTask":
-                    string taskID = (string)obj["ID"];
+                    taskID = (string)obj["ID"];
                     string newName = (string)obj["newName"];
                     tasks.Rename(taskID, newName);
                     Console.WriteLine("Renamed task: " + newName + "(" + taskID + ")");
                     OnRenamedTask(taskID, newName);
+                    break;
+                case "CheckTask":
+                    taskID = (string)obj["ID"];
+                    bool check = (bool)obj["check"];
+                    tasks.Check(taskID, check);
+                    Console.WriteLine("{0} the task: " + taskID,check? "Checked" : "Unchecked");
+                    OnCheckedTask(taskID,check);
                     break;
             }
         }
@@ -221,12 +237,13 @@ namespace TaskFunctions
             }
         }
         public event EventHandler<RecievedTaskEventArgs> RecievedTask;
-        protected virtual void OnRecievedTask(Task task)
+        protected virtual void OnRecievedTask(Task task, string parentTask)
         {
             if (RecievedTask != null)
             {
                 RecievedTaskEventArgs e = new RecievedTaskEventArgs();
                 e.task = task;
+                e.parentTask = parentTask;
                 RecievedTask(this, e);
             }
         }
@@ -239,6 +256,17 @@ namespace TaskFunctions
                 e.taskID = taskID;
                 e.newName = newName;
                 RenamedTask(this, e);
+            }
+        }
+        public event EventHandler<CheckedTaskEventArgs> CheckedTask;
+        protected virtual void OnCheckedTask(string taskID, bool check)
+        {
+            if (CheckedTask != null)
+            {
+                CheckedTaskEventArgs e = new CheckedTaskEventArgs();
+                e.taskID = taskID;
+                e.check = check;
+                CheckedTask(this, e);
             }
         }
     }
