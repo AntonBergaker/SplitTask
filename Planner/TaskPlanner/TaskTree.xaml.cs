@@ -76,6 +76,7 @@ namespace TaskPlanner
             node.Select();
             OnSelectionChanged();
         }
+
         private void AddEvents(TaskTreeNode node)
         {
             node.SelectionChanged += Node_SelectionChanged;
@@ -99,7 +100,17 @@ namespace TaskPlanner
 
         public void RenameTask(string taskID)
         {
-            
+            if (nodeDictionary.ContainsKey(taskID))
+            {
+                nodeDictionary[taskID].Rename();
+            }
+        }
+        public void RefreshNode(string taskID)
+        {
+            if (nodeDictionary.ContainsKey(taskID))
+            {
+                nodeDictionary[taskID].Refresh();
+            }
         }
 
         public void ClearAll()

@@ -48,6 +48,14 @@ namespace TaskPlanner
             offsetGrid.Margin = new Thickness(depth * 30, 0, 0, 0);
             ExpanderRefresh();
         }
+        public void Rename()
+        {
+            //No idea why just a simple .Focus() doesn't work.
+            textBox.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() =>
+            {
+                textBox.Focus();
+            }));
+        }
 
         public void ExpanderRefresh()
         {
@@ -102,7 +110,9 @@ namespace TaskPlanner
         {
             if (e.Key == Key.Enter)
             {
-                textBox.MoveFocus(new TraversalRequest(FocusNavigationDirection.Previous));
+                var scope = FocusManager.GetFocusScope(textBox); // elem is the UIElement to unfocus
+                FocusManager.SetFocusedElement(scope, null); // remove logical focus
+                Keyboard.ClearFocus(); // remove keyboard focus
             }
         }
 

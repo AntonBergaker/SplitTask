@@ -51,18 +51,15 @@ namespace TaskPlanner
             webClient.Connect("185.16.95.101");
 
             gridSplitter.DragDelta += SplitterNameDragDelta;
-
-            taskTree.TextUpdated += TaskTree_TextUpdated;
-            taskTree.CheckUpdated += TaskTree_CheckUpdated;
         }
 
-        private void TaskTree_CheckUpdated(object sender, CheckUpdatedEventArgs e)
+        private void taskTree_CheckUpdated(object sender, CheckUpdatedEventArgs e)
         {
             webClient.TaskCheck(e.task.ID,e.check);
             tasks.Check(e.task.ID,e.check);
         }
 
-        private void TaskTree_TextUpdated(object sender, TextUpdatedEventArgs e)
+        private void taskTree_TextUpdated(object sender, TextUpdatedEventArgs e)
         {
             webClient.TaskRename(e.task,e.newName);
             tasks.Rename(e.task, e.newName);
@@ -87,6 +84,8 @@ namespace TaskPlanner
             tasks.Add(task);
             webClient.TaskAdd(task);
             taskTree.AddNode(task);
+            taskTree.RenameTask(task.ID);
+            e.Handled = true;
         }
 
         private void buttonNewSubtask_Click(object sender, RoutedEventArgs e)
@@ -99,6 +98,7 @@ namespace TaskPlanner
                 tasks.Add(task,parentTask);
                 webClient.TaskAdd(task,parentTask);
                 taskTree.AddNode(task,parentTask.ID);
+                taskTree.RenameTask(task.ID);
             }
         }
 
@@ -135,7 +135,8 @@ namespace TaskPlanner
         }
         private void HandleTaskRename(object sender, RenamedTaskEventArgs e)
         {
-           
+            string id = e.taskID;
+            taskTree.RefreshNode(id);
         }
 
         #endregion
