@@ -41,19 +41,23 @@ namespace TaskPlanner
             NodeAddToTree(node);
         }
 
-        public void AddNode(Task task, string parentID)
+        public void AddNode(Task task, string parentID, bool expandParent)
         {
             TaskTreeNode parentNode = nodeDictionary[parentID];
             TaskTreeNode node = new TaskTreeNode(task, parentNode.depth+1);
-            ExpandNode(parentNode, true);
+            if (expandParent)
+            { ExpandNode(parentNode, true); }
             parentNode.children.Add(node);
             parentNode.ExpanderRefresh();
             NodeAddToTree(node,parentNode);
         }
         private void NodeAddToTree(TaskTreeNode node, TaskTreeNode parentNode)
         {
-            int index = stackPanel.Children.IndexOf(parentNode)+GetVisibleChildCount(parentNode);
-            stackPanel.Children.Insert(index,node);
+            if (stackPanel.Children.Contains(parentNode)) //Only add to panel if the parent is visible
+            {
+                int index = stackPanel.Children.IndexOf(parentNode) + GetVisibleChildCount(parentNode);
+                stackPanel.Children.Insert(index, node);
+            }
             nodeDictionary[node.ID] = node;
             AddEvents(node);
             foreach (TaskTreeNode n in node.children)
@@ -109,17 +113,22 @@ namespace TaskPlanner
                 if (expand)
                 {
                     node.isExpanded = true;
-                    foreach (TaskTreeNode n in node.children)
+                    try
                     {
-                        stackPanel.Children.Insert(index+1,n);
-                        InitalizeExpandNode(n);
-                        index += GetVisibleChildCount(n)+1;
+                        foreach (TaskTreeNode n in node.children)
+                        {
+                            stackPanel.Children.Insert(index + 1, n);
+                            InitalizeExpandNode(n);
+                            index += GetVisibleChildCount(n) + 1;
+                        }
                     }
+                    catch (Exception ex) { Console.WriteLine(ex); RefreshAll(); return; }
                 }
                 else
                 {
                     int children = GetVisibleChildCount(node);
-                    stackPanel.Children.RemoveRange(index+1, children);
+                    try { stackPanel.Children.RemoveRange(index + 1, children); }
+                    catch (Exception ex) { Console.WriteLine(ex); RefreshAll(); return; }
                     node.isExpanded = false;
                 }
                 node.ExpanderRefresh();
@@ -201,13 +210,16 @@ namespace TaskPlanner
             }
         }
 
+        public void RefreshAll()
+        {
+            stackPanel.Children.Clear();
+            foreach (TaskTreeNode n in tasks)
+            { NodeAddToTree(n); }
+        }
         public void ClearAll()
         {
             stackPanel.Children.Clear();
-            foreach (TaskTreeNode t in visibleTasks)
-            {
-                stackPanel.Children.Add(t);
-            }
+            tasks.Clear();
         }
 
         public void RemoveNode(string taskID)

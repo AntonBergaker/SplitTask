@@ -25,6 +25,7 @@ namespace TaskPlanner
         public bool isExpanded;
         public int depth;
         public string ID;
+        
 
         private SolidColorBrush defaultExpanderBrush;
 

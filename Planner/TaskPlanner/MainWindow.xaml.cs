@@ -112,7 +112,7 @@ namespace TaskPlanner
                 task.chooseID(randomGenerator);
                 tasks.Add(task,parentTask);
                 webClient.TaskAdd(task,parentTask);
-                taskTree.AddNode(task,parentTask.ID);
+                taskTree.AddNode(task,parentTask.ID,true);
                 taskTree.RenameTask(task.ID);
             }
         }
@@ -146,7 +146,7 @@ namespace TaskPlanner
             if (parent == null)
             { taskTree.AddNode(task);}
             else
-            { taskTree.AddNode(task, parent); }
+            { taskTree.AddNode(task, parent, false); }
             
         }
         private void HandleTaskRename(object sender, RenamedTaskEventArgs e)
