@@ -41,17 +41,18 @@ namespace TaskPlanner
             NodeAddToTree(node);
         }
 
-        public void AddNode(Task task, string parentTask)
+        public void AddNode(Task task, string parentID)
         {
-            TaskTreeNode parentNode = nodeDictionary[parentTask];
+            TaskTreeNode parentNode = nodeDictionary[parentID];
             TaskTreeNode node = new TaskTreeNode(task, parentNode.depth+1);
+            ExpandNode(parentNode, true);
             parentNode.children.Add(node);
             parentNode.ExpanderRefresh();
             NodeAddToTree(node,parentNode);
         }
         private void NodeAddToTree(TaskTreeNode node, TaskTreeNode parentNode)
         {
-            int index = stackPanel.Children.IndexOf(parentNode)+parentNode.children.Count;
+            int index = stackPanel.Children.IndexOf(parentNode)+GetVisibleChildCount(parentNode);
             stackPanel.Children.Insert(index,node);
             nodeDictionary[node.ID] = node;
             AddEvents(node);
@@ -67,6 +68,11 @@ namespace TaskPlanner
             foreach (TaskTreeNode n in node.children)
             { NodeAddToTree(n); }
         }
+
+        /// <summary>
+        /// Puts a certain node into focus
+        /// </summary>
+        /// <param name="node"></param>
         public void Select(TaskTreeNode node)
         {
             foreach (TaskTreeNode n in selectedNodes)
@@ -77,11 +83,93 @@ namespace TaskPlanner
             OnSelectionChanged();
         }
 
+        /// <summary>
+        /// Expands or unexpands a specific node
+        /// </summary>
+        /// <param name="taskID"></param>
+        /// <param name="expanded"></param>
+        public void ExpandNode(string taskID, bool expanded)
+        {
+            if (nodeDictionary.ContainsKey(taskID))
+            {
+                ExpandNode(nodeDictionary[taskID],expanded);
+            }
+        }
+        
+        /// <summary>
+        /// Expands or unexpands a specific node
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="expand"></param>
+        public void ExpandNode(TaskTreeNode node, bool expand)
+        {
+            if (expand != node.isExpanded)
+            {
+                int index = stackPanel.Children.IndexOf(node);
+                if (expand)
+                {
+                    node.isExpanded = true;
+                    foreach (TaskTreeNode n in node.children)
+                    {
+                        stackPanel.Children.Insert(index+1,n);
+                        InitalizeExpandNode(n);
+                        index += GetVisibleChildCount(n)+1;
+                    }
+                }
+                else
+                {
+                    int children = GetVisibleChildCount(node);
+                    stackPanel.Children.RemoveRange(index+1, children);
+                    node.isExpanded = false;
+                }
+                node.ExpanderRefresh();
+            }
+        }
+
+        /// <summary>
+        /// Creates the subnodes for a node assuming they were not there before
+        /// </summary>
+        /// <param name="node"></param>
+        private void InitalizeExpandNode(TaskTreeNode node)
+        {
+            if (node.isExpanded)
+            {
+                int index = stackPanel.Children.IndexOf(node);
+                foreach (TaskTreeNode n in node.children)
+                {
+                    stackPanel.Children.Insert(index + 1, n);
+                    InitalizeExpandNode(n);
+                    index += GetVisibleChildCount(n)+1;
+                }
+            }
+
+            node.ExpanderRefresh();
+        }
+
+        private int GetVisibleChildCount(TaskTreeNode node)
+        {
+            int count = 0;
+            if (node.isExpanded)
+            {
+                count += node.children.Count;
+                foreach (TaskTreeNode n in node.children)
+                { count += GetVisibleChildCount(n); }
+            }
+            return count;
+        }
+
         private void AddEvents(TaskTreeNode node)
         {
             node.SelectionChanged += Node_SelectionChanged;
             node.TextUpdated += Node_TextUpdated;
             node.CheckUpdated += Node_CheckUpdated;
+            node.ExpandUpdated += Node_ExpandUpdated;
+        }
+
+        private void Node_ExpandUpdated(object sender, ExpandUpdatedEventArgs e)
+        {
+            TaskTreeNode node = (TaskTreeNode)sender;
+            ExpandNode(node, e.expanded);
         }
 
         private void Node_CheckUpdated(object sender, CheckUpdatedEventArgs e)

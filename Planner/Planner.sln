@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleReadPlanner", "Simple
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskPlanner", "TaskPlanner\TaskPlanner.csproj", "{148EDDCC-6323-4F18-BEA8-44F281787380}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DummyProjectThatBootsManyTaskPlanners", "DummyProjectThatBootsManyTaskPlanners\DummyProjectThatBootsManyTaskPlanners.csproj", "{4898BA67-D098-49A3-9292-3B9661242297}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		TaskFunctions\TaskFunctions.projitems*{148eddcc-6323-4f18-bea8-44f281787380}*SharedItemsImports = 4
@@ -46,6 +48,10 @@ Global
 		{148EDDCC-6323-4F18-BEA8-44F281787380}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
 		{148EDDCC-6323-4F18-BEA8-44F281787380}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{148EDDCC-6323-4F18-BEA8-44F281787380}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4898BA67-D098-49A3-9292-3B9661242297}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4898BA67-D098-49A3-9292-3B9661242297}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4898BA67-D098-49A3-9292-3B9661242297}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4898BA67-D098-49A3-9292-3B9661242297}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

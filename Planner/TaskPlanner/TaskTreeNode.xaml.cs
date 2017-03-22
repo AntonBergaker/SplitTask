@@ -22,7 +22,7 @@ namespace TaskPlanner
     {
         public Task task;
         public List<TaskTreeNode> children;
-        public bool isCollapsed;
+        public bool isExpanded;
         public int depth;
         public string ID;
 
@@ -34,6 +34,8 @@ namespace TaskPlanner
             this.task = task;
             this.depth = depth;
             this.ID = task.ID;
+
+            isExpanded = true;
             defaultExpanderBrush = (SolidColorBrush)expanderArrow.Foreground;
 
             children = new List<TaskTreeNode>();
@@ -63,10 +65,10 @@ namespace TaskPlanner
             { expanderArrow.Foreground = null; }
             else
             { expanderArrow.Foreground = defaultExpanderBrush; }
-            if (isCollapsed)
-            { expanderArrow.RenderTransform = new RotateTransform(0); }
-            else
+            if (isExpanded)
             { expanderArrow.RenderTransform = new RotateTransform(45); }
+            else
+            { expanderArrow.RenderTransform = new RotateTransform(0); }
         }
 
         public void Select()
@@ -97,6 +99,7 @@ namespace TaskPlanner
         {
             OnTextUpdated();
         }
+
         private void checkBox_Checked(object sender, RoutedEventArgs e)
         {
             OnCheckUpdated();
@@ -106,14 +109,27 @@ namespace TaskPlanner
             OnCheckUpdated();
         }
 
+        private void checkBox_Click(object sender, RoutedEventArgs e)
+        {
+            OnCheckUpdated();
+        }
+
         private void textBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
+                //Unfocusing was tricker than it looked
                 var scope = FocusManager.GetFocusScope(textBox); // elem is the UIElement to unfocus
                 FocusManager.SetFocusedElement(scope, null); // remove logical focus
                 Keyboard.ClearFocus(); // remove keyboard focus
             }
+        }
+
+        private void expanderWrapper_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            ExpanderRefresh();
+            //Let the tasktree update its expand setting so it can create the necessary child nodes
+            OnExpandUpdated(!isExpanded);
         }
 
 
@@ -144,10 +160,15 @@ namespace TaskPlanner
 
         private void OnTextUpdated()
         {
-            TextUpdatedEventArgs e = new TextUpdatedEventArgs(TaskTreeNode.TextUpdatedEvent);
-            e.task = task;
-            e.newName = textBox.Text;
-            RaiseEvent(e);
+            //Only pass the event if it was changed
+            if (task.title != textBox.Text)
+            {
+                TextUpdatedEventArgs e = new TextUpdatedEventArgs(TaskTreeNode.TextUpdatedEvent);
+
+                e.task = task;
+                e.newName = textBox.Text;
+                RaiseEvent(e);
+            }
         }
         #endregion
         #region CheckUpdated
@@ -162,12 +183,39 @@ namespace TaskPlanner
 
         private void OnCheckUpdated()
         {
-            CheckUpdatedEventArgs e = new CheckUpdatedEventArgs(TaskTreeNode.CheckUpdatedEvent);
-            e.task = task;
-            e.check = (bool)checkBox.IsChecked;
-            RaiseEvent(e);
+            //Only pass the event if it was changed
+            if (task.isCompleted != checkBox.IsChecked)
+            {
+                CheckUpdatedEventArgs e = new CheckUpdatedEventArgs(TaskTreeNode.CheckUpdatedEvent);
+                e.task = task;
+                e.check = (bool)checkBox.IsChecked;
+                RaiseEvent(e);
+            }
         }
         #endregion
+        #region ExpandUpdated
+        public delegate void ExpandUpdatedEventHandler(object sender, ExpandUpdatedEventArgs e);
+        public static readonly RoutedEvent ExpandUpdatedEvent = EventManager.RegisterRoutedEvent(
+            "ExpandUpdated", RoutingStrategy.Bubble, typeof(ExpandUpdatedEventHandler), typeof(TaskTreeNode));
+        public event ExpandUpdatedEventHandler ExpandUpdated
+        {
+            add { AddHandler(ExpandUpdatedEvent, value); }
+            remove { RemoveHandler(ExpandUpdatedEvent, value); }
+        }
+
+        private void OnExpandUpdated(bool expanded)
+        {
+            //Only pass the event if it was changed
+            if (isExpanded != expanded)
+            {
+                ExpandUpdatedEventArgs e = new ExpandUpdatedEventArgs(TaskTreeNode.ExpandUpdatedEvent);
+                e.task = task;
+                e.expanded = expanded;
+                RaiseEvent(e);
+            }
+        }
+        #endregion
+
     }
     public class TextUpdatedEventArgs : RoutedEventArgs
     {
@@ -180,5 +228,11 @@ namespace TaskPlanner
         public Task task;
         public bool check;
         public CheckUpdatedEventArgs(RoutedEvent routedEvent) : base(routedEvent) { }
+    }
+    public class ExpandUpdatedEventArgs : RoutedEventArgs
+    {
+        public Task task;
+        public bool expanded;
+        public ExpandUpdatedEventArgs(RoutedEvent routedEvent) : base(routedEvent) { }
     }
 }

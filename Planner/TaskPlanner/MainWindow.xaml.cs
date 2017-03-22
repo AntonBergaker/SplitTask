@@ -38,6 +38,7 @@ namespace TaskPlanner
             expander.Content = menuFile;
 
             sideWindowControls = new Control[] { textBoxTaskName, textBoxTaskDescription, datePickerDue};
+            SideWindowEnable(false);
 
             webClient = new TaskWebClient(tasks);
             webClient.RecievedTasks += (sender, args) => dispatcher.BeginInvoke(
@@ -65,6 +66,20 @@ namespace TaskPlanner
             tasks.Rename(e.task, e.newName);
             if (sideWindowTask.ID == e.task.ID)
             { SideWindowUpdate(e.task); }
+        }
+
+        private void taskTree_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            if (taskTree.selectedNodes.Count == 1)
+            {
+                SideWindowUpdate(taskTree.selectedNodes[0].task);
+                buttonNewSubtask.IsEnabled = true;
+            }
+            else
+            {
+                SideWindowClear();
+                buttonNewSubtask.IsEnabled = false;
+            }
         }
 
         private void SplitterNameDragDelta(object sender, System.Windows.Controls.Primitives.DragDeltaEventArgs e)
@@ -120,7 +135,8 @@ namespace TaskPlanner
         }
         private void HandleTaskCheck(object sender, CheckedTaskEventArgs e)
         {
-
+            string id = e.taskID;
+            taskTree.RefreshNode(id);
         }
 
         private void HandleTaskRecieve(object sender, RecievedTaskEventArgs e)
@@ -157,25 +173,12 @@ namespace TaskPlanner
             webClient.RequestClose();
         }
 
-        private void taskTree_SelectionChanged(object sender, RoutedEventArgs e)
-        {
-            if (taskTree.selectedNodes.Count == 1)
-            {
-                SideWindowUpdate(taskTree.selectedNodes[0].task);
-                buttonNewSubtask.IsEnabled = true;
-            }
-            else
-            {
-                SideWindowClear();
-                buttonNewSubtask.IsEnabled = false;
-            }
-        }
         private void SideWindowClear()
         {
             textBoxTaskName.Text = "";
             textBoxTaskDescription.Text = "";
             datePickerDue.SelectedDate = null;
-            SideWindowEnabled(false);
+            SideWindowEnable(false);
         }
         private void SideWindowUpdate(Task task)
         {
@@ -183,9 +186,9 @@ namespace TaskPlanner
             textBoxTaskName.Text = task.title;
             textBoxTaskDescription.Text = task.description;
             datePickerDue.SelectedDate = task.timeDue;
-            SideWindowEnabled(true);
+            SideWindowEnable(true);
         }
-        private void SideWindowEnabled(bool enabled)
+        private void SideWindowEnable(bool enabled)
         {
             foreach (Control c in sideWindowControls)
              { c.IsEnabled = enabled; }
