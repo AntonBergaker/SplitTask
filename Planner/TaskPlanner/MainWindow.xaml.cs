@@ -193,5 +193,36 @@ namespace TaskPlanner
             foreach (Control c in sideWindowControls)
              { c.IsEnabled = enabled; }
         }
+
+        private void textBoxTaskName_LostFocus(object sender, RoutedEventArgs e)
+        {
+            string newTitle = textBoxTaskName.Text;
+            if (sideWindowTask != null)
+            {
+                if (newTitle == "")
+                { textBoxTaskName.Text = sideWindowTask.title; }
+                else if (sideWindowTask.title != newTitle)
+                {
+                    sideWindowTask.title = newTitle;
+                    taskTree.RefreshNode(sideWindowTask.ID);
+                    webClient.TaskRename(sideWindowTask.ID, newTitle);
+                }
+            }
+        }
+
+        private void textBoxTaskName_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                ResetFocus(this);
+            }
+        }
+        private void ResetFocus(DependencyObject obj)
+        {
+            //Unfocusing was tricker than it looked
+            var scope = FocusManager.GetFocusScope(obj); // elem is the UIElement to unfocus
+            FocusManager.SetFocusedElement(scope, null); // remove logical focus
+            Keyboard.ClearFocus(); // remove keyboard focus
+        }
     }
 }

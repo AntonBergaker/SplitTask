@@ -48,8 +48,8 @@
                 </Rectangle>
                 <ScrollViewer FlowDirection="RightToLeft" VerticalScrollBarVisibility="Auto">
                     <StackPanel VerticalAlignment="Top" FlowDirection="LeftToRight" Margin="0,90,0,0">
-                        <TextBlock x:Name="textBlockTitle" Text="Task" VerticalAlignment="Top" Margin="40,25,40,0" HorizontalAlignment="Left" Foreground="#99000000" FontSize="14"/>
-                        <TextBox x:Name="textBoxTaskName" Height="auto" Margin="40,6,40,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="17" ToolTip="Task Name" TextAlignment="Center"/>
+
+                        <TextBox x:Name="textBoxTaskName" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Task Name" Height="auto" Margin="40,19,40,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="17" ToolTip="Task Name" TextAlignment="Center" LostFocus="textBoxTaskName_LostFocus" KeyDown="textBoxTaskName_KeyDown"/>
                         <Separator Margin="0,-1,0,0" VerticalAlignment="Top"/>
                         <TextBox x:Name="textBoxTaskDescription" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Notes" Height="auto" Margin="40,31,40,0" TextWrapping="Wrap" VerticalAlignment="Top" ToolTip="Task Description" TextAlignment="Left"/>
                         <DatePicker x:Name="datePickerDue" materialDesign:HintAssist.Hint="Due Date" Style="{StaticResource MaterialDesignFloatingHintDatePicker}" VerticalAlignment="Top" Height="30" SelectedDateFormat="Long" Margin="40,40,40,0" FirstDayOfWeek="Monday"/>
