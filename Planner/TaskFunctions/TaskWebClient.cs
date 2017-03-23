@@ -25,20 +25,63 @@ namespace TaskFunctions
         private byte[] streamKeys;
         private ICryptoTransform decryptor;
         private ICryptoTransform encryptor;
-        private readonly byte[] terminationBytes = new byte[] { 0x15, 0xba, 0xfc, 0x61 };
+        private readonly byte[] terminationBytes = new byte[] { 0x15, 0xba, 0xfc, 0x61, 0xf1, 0x03 };
 
         public TaskWebClient(TaskCollection tasks)
         {
             this.tasks = tasks;
+            tasks.TaskAdded += Tasks_TaskAdded;
             handShaken = false;
             running = true;
+            AddEventsToTasks(tasks.tasks);
         }
+
         public TaskWebClient(TaskCollection tasks, string address)
         {
             this.tasks = tasks;
             handShaken = false;
             running = true;
+            AddEventsToTasks(tasks.tasks);
             Connect(address);
+        }
+
+        private void AddEventsToTask(Task task)
+        {
+            task.TaskChecked += Task_TaskChecked;
+            task.TaskRenamed += Task_TaskRenamed;
+        }
+
+
+        private void AddEventsToTasks(List<Task> tasks)
+        {
+            foreach (Task t in tasks)
+            {
+                AddEventsToTask(t);
+                AddEventsToTasks(t.subtasks);
+            }
+        }
+
+        private void Tasks_TaskAdded(object sender, TaskAddedEventArgs e)
+        {
+            AddEventsToTask(e.task);
+        }
+
+        private void Task_TaskRenamed(object sender, TaskRenamedEventArgs e)
+        {
+            if (e.originalSender != this)
+            {
+                Task task = e.task;
+                TaskRename(e.task.ID,e.newName);
+            }
+        }
+
+        private void Task_TaskChecked(object sender, TaskCheckedEventArgs e)
+        {
+            if (e.originalSender != this)
+            {
+                Task task = e.task;
+                TaskCheck(task.ID, e.check);
+            }
         }
 
         public void Connect(string address)
@@ -124,6 +167,7 @@ namespace TaskFunctions
                     }
                     catch (Exception ex)
                     {
+                        Console.WriteLine(ex);
                         break;
                     }
                 }
@@ -155,22 +199,20 @@ namespace TaskFunctions
                     {
                         tasks.Add(task);
                     }
-                    Console.WriteLine("Made a new task: " + task.title + "(" + task.ID + ")");
+                    Console.WriteLine("Made a new task: " + task.name + "(" + task.ID + ")");
                     OnRecievedTask(task, parentTask);
                     break;
                 case "RenameTask":
                     taskID = (string)obj["ID"];
                     string newName = (string)obj["newName"];
-                    tasks.Rename(taskID, newName);
+                    tasks.Rename(taskID, newName,this);
                     Console.WriteLine("Renamed task: " + newName + "(" + taskID + ")");
-                    OnRenamedTask(taskID, newName);
                     break;
                 case "CheckTask":
                     taskID = (string)obj["ID"];
                     bool check = (bool)obj["check"];
-                    tasks.Check(taskID, check);
+                    tasks.Check(taskID, check, this);
                     Console.WriteLine("{0} the task: " + taskID, check ? "Checked" : "Unchecked");
-                    OnCheckedTask(taskID, check);
                     break;
             }
         }
@@ -201,6 +243,7 @@ namespace TaskFunctions
             string text = Encoding.UTF8.GetString(message);
 
             tasks.ImportText(text);
+            AddEventsToTasks(tasks.tasks);
             OnRecievedTasks();
             handShaken = true;
             MainLoop();
@@ -279,7 +322,7 @@ namespace TaskFunctions
         {
             byte[] fullPackage;
 
-            byte[] finalBytes = new byte[4];
+            byte[] finalBytes = new byte[6];
 
             byte[] recievedBytes = new byte[1024];
             MemoryStream byteStream = new MemoryStream();
@@ -290,16 +333,19 @@ namespace TaskFunctions
                 bytesRead = stream.Read(recievedBytes, 0, recievedBytes.Length);
 
                 byteStream.Write(recievedBytes, 0, bytesRead);
-                if (byteStream.Length > 4)
+                if (byteStream.Length > 6)
                 {
-                    byteStream.Position -= 4;
-                    byteStream.Read(finalBytes, 0, 4);
+                    byteStream.Position -= 6;
+                    byteStream.Read(finalBytes, 0, 6);
                 }
             }
             while (!Enumerable.SequenceEqual(finalBytes,terminationBytes));
 
             fullPackage = byteStream.ToArray();
-            Array.Resize(ref fullPackage, fullPackage.Length - 4);
+            if (fullPackage.Length > 6)
+            {
+                Array.Resize(ref fullPackage, fullPackage.Length - 6);
+            }
 
             RecievedDataEventArgs e = new RecievedDataEventArgs();
             e.byteData = fullPackage;
@@ -334,28 +380,6 @@ namespace TaskFunctions
                 e.task = task;
                 e.parentTask = parentTask;
                 RecievedTask(this, e);
-            }
-        }
-        public event EventHandler<RenamedTaskEventArgs> RenamedTask;
-        protected virtual void OnRenamedTask(string taskID, string newName)
-        {
-            if (RenamedTask != null)
-            {
-                RenamedTaskEventArgs e = new RenamedTaskEventArgs();
-                e.taskID = taskID;
-                e.newName = newName;
-                RenamedTask(this, e);
-            }
-        }
-        public event EventHandler<CheckedTaskEventArgs> CheckedTask;
-        protected virtual void OnCheckedTask(string taskID, bool check)
-        {
-            if (CheckedTask != null)
-            {
-                CheckedTaskEventArgs e = new CheckedTaskEventArgs();
-                e.taskID = taskID;
-                e.check = check;
-                CheckedTask(this, e);
             }
         }
     }

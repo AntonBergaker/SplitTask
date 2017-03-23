@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TaskFunctions;
 
 namespace Planner
 {
@@ -26,13 +27,16 @@ namespace Planner
             if (IDDictionary.ContainsKey(taskID))
             { Remove(IDDictionary[taskID]); }
         }
-        public void Check(string taskID, bool isChecked)
+        public void Check(string taskID, bool isChecked, object sender)
         {
             if (IDDictionary.ContainsKey(taskID))
             {
-                IDDictionary[taskID].isCompleted = isChecked;
-                IDDictionary[taskID].timeCompleted = DateTime.Now;
+                IDDictionary[taskID].Check(isChecked,sender);
             }
+        }
+        public void Check(string taskID, bool isChecked)
+        {
+            Check(taskID, isChecked, this);
         }
 
         public void Remove(Task task)
@@ -58,38 +62,43 @@ namespace Planner
         public int Count
         { get { return tasks.Count; } }
 
-        public void Add(Task task)
+        public void Add(Task task, object sender = null)
         {
             tasks.Add(task);
             if (!IDDictionary.ContainsKey(task.ID))
-            { IDDictionary.Add(task.ID, task); }
+            {
+                IDDictionary.Add(task.ID, task);
+                OnTaskAdded(task, null, null, sender);
+            }
         }
-        public void Add(Task newTask, Task parentTask)
+        public void Add(Task newTask, Task parentTask, object sender = null)
         {
             if (parentTask != null)
             {
                 parentTask.subtasks.Add(newTask);
                 IDDictionary.Add(newTask.ID, newTask);
+                OnTaskAdded(newTask, parentTask, null, sender);
             }
         }
         public void Add(Task newTask, string parentTaskID)
         {
             if (IDDictionary.ContainsKey(parentTaskID))
             {
-                IDDictionary[parentTaskID].subtasks.Add(newTask);
-                IDDictionary.Add(newTask.ID, newTask);
+                Add(newTask, IDDictionary[parentTaskID]);
+            }
+        }
+
+
+        public void Rename(string ID, string name, object sender)
+        {
+            if (IDDictionary.ContainsKey(ID))
+            {
+                IDDictionary[ID].Rename(name, sender);
             }
         }
         public void Rename(string ID, string name)
         {
-            if (IDDictionary.ContainsKey(ID))
-            {
-                Rename(IDDictionary[ID], name);
-            }
-        }
-        public void Rename(Task task, string name)
-        {
-            task.title = name;
+            Rename(ID, name, this);
         }
         public void ExportFile(string path)
         {
@@ -122,6 +131,20 @@ namespace Planner
                 if (!IDDictionary.ContainsKey(t.ID))
                 { IDDictionary.Add(t.ID,t); }
                 IDDictionaryAddFromList(t.subtasks);
+            }
+        }
+
+        public event EventHandler<TaskAddedEventArgs> TaskAdded;
+        private void OnTaskAdded(Task task, Task taskParent, Task taskUnder,object sender)
+        {
+            if (TaskAdded != null)
+            {
+                TaskAddedEventArgs e = new TaskAddedEventArgs();
+                e.task = task;
+                e.taskUnder = taskUnder;
+                e.parentTask = taskParent;
+                e.originalSender = sender;
+                TaskAdded(this, e);
             }
         }
         

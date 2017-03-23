@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using TaskFunctions;
 
 namespace Planner
 {
@@ -18,7 +19,7 @@ namespace Planner
         public int Count {
             get { return subtasks.Count; }
         }
-        public string title = "";
+        public string name = "";
         public string description = "";
         public bool isFolder = false;
         public bool isCompleted = false;
@@ -29,7 +30,7 @@ namespace Planner
 
         public Task(string name)
         {
-            title = name;
+            this.name = name;
             timeCreated = DateTime.Now;
         }
         public Task()
@@ -38,14 +39,14 @@ namespace Planner
         }
         public Task(string name, string ID)
         {
-            title = name;
+            this.name = name;
             id = ID;
             timeCreated = DateTime.Now;
         }
         public JObject ToJObject()
         {
             JObject obj = new JObject();
-            obj.Add("name", title);
+            obj.Add("name", name);
 
             List<JObject> sublist = new List<JObject>();
             foreach (Task t in subtasks)
@@ -93,10 +94,60 @@ namespace Planner
             randomGenerator.NextBytes(randomValue);
             id = Convert.ToBase64String(randomValue).Replace("/", "-");
         }
+        
+        public void Rename(string newName, object sender)
+        {
+            //If it was changed, raise events
+            if (newName != name)
+            {
+                string oldName = name;
+                name = newName;
+                OnRenamed(newName,oldName,sender);
+            }
+        }
+        public void Check(bool check, object sender)
+        {
+            if (check != isCompleted)
+            {
+                isCompleted = check;
+                if (check)
+                { timeCompleted = DateTime.Now; }
+                OnChecked(check,sender);
+            }
+        }
 
         public override string ToString()
         {
-            return title + '(' +id + ')';
+            return name + '(' +id + ')';
         }
+
+
+        public event EventHandler<TaskRenamedEventArgs> TaskRenamed;
+        protected virtual void OnRenamed(string newName, string oldName, object sender)
+        {
+            if (TaskRenamed != null)
+            {
+                TaskRenamedEventArgs e = new TaskRenamedEventArgs();
+                e.newName = newName;
+                e.oldName = oldName;
+                e.originalSender = sender;
+                e.task = this;
+                TaskRenamed(this, e);
+            }
+        }
+        public event EventHandler<TaskCheckedEventArgs> TaskChecked;
+        protected virtual void OnChecked(bool check, object sender)
+        {
+            if (TaskChecked != null)
+            {
+                TaskCheckedEventArgs e = new TaskCheckedEventArgs();
+                e.check = check;
+                e.originalSender = sender;
+                e.task = this;
+                TaskChecked(this, e);
+            }
+        }
+
+
     }
 }

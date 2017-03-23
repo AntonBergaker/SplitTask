@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using Planner;
 using System.Windows.Shapes;
+using TaskFunctions;
 
 namespace TaskPlanner
 {
@@ -36,6 +37,13 @@ namespace TaskPlanner
             this.depth = depth;
             this.ID = task.ID;
 
+            var dispatcher = Application.Current.MainWindow.Dispatcher;
+
+            task.TaskChecked += (sender, args) => dispatcher.BeginInvoke(
+                new Action(() => { Task_TaskChecked(sender, args); }));
+            task.TaskRenamed += (sender, args) => dispatcher.BeginInvoke(
+                new Action(() => { Task_TaskRenamed(sender, args); }));
+
             isExpanded = true;
             defaultExpanderBrush = (SolidColorBrush)expanderArrow.Foreground;
 
@@ -44,9 +52,24 @@ namespace TaskPlanner
             { children.Add(new TaskTreeNode(t,depth+1)); }
             Refresh();
         }
+
+        private void Task_TaskRenamed(object sender, TaskRenamedEventArgs e)
+        {
+            if (e.originalSender != this)
+            { Refresh(); }
+        }
+
+        private void Task_TaskChecked(object sender, TaskCheckedEventArgs e)
+        {
+            Console.WriteLine(e.originalSender);
+            Console.WriteLine(this);
+            if (e.originalSender != this)
+            { Refresh(); }
+        }
+
         public void Refresh()
         {
-            textBox.Text = task.title;
+            textBox.Text = task.name;
             checkBox.IsChecked = task.isCompleted;
             offsetGrid.Margin = new Thickness(depth * 30, 0, 0, 0);
             ExpanderRefresh();
@@ -98,7 +121,7 @@ namespace TaskPlanner
         }
         private void textBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            OnTextUpdated();
+            task.Rename(textBox.Text,this);
         }
 
         private void checkBox_Checked(object sender, RoutedEventArgs e)
@@ -113,6 +136,10 @@ namespace TaskPlanner
         private void checkBox_Click(object sender, RoutedEventArgs e)
         {
             OnCheckUpdated();
+        }
+        private void OnCheckUpdated()
+        {
+            task.Check((bool)checkBox.IsChecked,this);
         }
 
         private void textBox_KeyDown(object sender, KeyEventArgs e)
@@ -149,51 +176,6 @@ namespace TaskPlanner
             RaiseEvent(e);
         }
         #endregion
-        #region TextUpdated
-        public delegate void TextUpdatedEventHandler(object sender, TextUpdatedEventArgs e);
-        public static readonly RoutedEvent TextUpdatedEvent = EventManager.RegisterRoutedEvent(
-            "TextUpdated", RoutingStrategy.Bubble, typeof(TextUpdatedEventHandler), typeof(TaskTreeNode));
-        public event TextUpdatedEventHandler TextUpdated
-        {
-            add { AddHandler(TextUpdatedEvent, value); }
-            remove { RemoveHandler(TextUpdatedEvent, value); }
-        }
-
-        private void OnTextUpdated()
-        {
-            //Only pass the event if it was changed
-            if (task.title != textBox.Text)
-            {
-                TextUpdatedEventArgs e = new TextUpdatedEventArgs(TaskTreeNode.TextUpdatedEvent);
-
-                e.task = task;
-                e.newName = textBox.Text;
-                RaiseEvent(e);
-            }
-        }
-        #endregion
-        #region CheckUpdated
-        public delegate void CheckUpdatedEventHandler(object sender, CheckUpdatedEventArgs e);
-        public static readonly RoutedEvent CheckUpdatedEvent = EventManager.RegisterRoutedEvent(
-            "CheckUpdated", RoutingStrategy.Bubble, typeof(CheckUpdatedEventHandler), typeof(TaskTreeNode));
-        public event CheckUpdatedEventHandler CheckUpdated
-        {
-            add { AddHandler(CheckUpdatedEvent, value); }
-            remove { RemoveHandler(CheckUpdatedEvent, value); }
-        }
-
-        private void OnCheckUpdated()
-        {
-            //Only pass the event if it was changed
-            if (task.isCompleted != checkBox.IsChecked)
-            {
-                CheckUpdatedEventArgs e = new CheckUpdatedEventArgs(TaskTreeNode.CheckUpdatedEvent);
-                e.task = task;
-                e.check = (bool)checkBox.IsChecked;
-                RaiseEvent(e);
-            }
-        }
-        #endregion
         #region ExpandUpdated
         public delegate void ExpandUpdatedEventHandler(object sender, ExpandUpdatedEventArgs e);
         public static readonly RoutedEvent ExpandUpdatedEvent = EventManager.RegisterRoutedEvent(
@@ -218,18 +200,7 @@ namespace TaskPlanner
         #endregion
 
     }
-    public class TextUpdatedEventArgs : RoutedEventArgs
-    {
-        public Task task;
-        public string newName;
-        public TextUpdatedEventArgs(RoutedEvent routedEvent) : base(routedEvent) { }
-    }
-    public class CheckUpdatedEventArgs : RoutedEventArgs
-    {
-        public Task task;
-        public bool check;
-        public CheckUpdatedEventArgs(RoutedEvent routedEvent) : base(routedEvent) { }
-    }
+
     public class ExpandUpdatedEventArgs : RoutedEventArgs
     {
         public Task task;

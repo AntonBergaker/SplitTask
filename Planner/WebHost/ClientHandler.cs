@@ -20,7 +20,7 @@ namespace WebHost
         NetworkStream stream;
         Thread thread;
         public int ID;
-        private readonly byte[] terminationBytes = new byte[] { 0x15, 0xba, 0xfc, 0x61 };
+        private readonly byte[] terminationBytes = new byte[] { 0x15, 0xba, 0xfc, 0x61, 0xf1, 0x03 };
         RSACryptoServiceProvider RSA;
         ICryptoTransform encryptor;
         ICryptoTransform decryptor;
@@ -86,7 +86,7 @@ namespace WebHost
                     {
                         tasks.Add(task);
                     }
-                    Console.WriteLine("made a new task: " + task.title + "(" + task.ID + ")");
+                    Console.WriteLine("made a new task: " + task.name + "(" + task.ID + ")");
                     OnRecievedJson(obj, true);
                     break;
                 case "RenameTask":
@@ -99,7 +99,7 @@ namespace WebHost
                 case "CheckTask":
                     taskID = (string)obj["ID"];
                     bool check = (bool)obj["check"];
-                    tasks.Check(taskID, check);
+                    tasks.Check(taskID, check, this);
                     Console.WriteLine("{0} the task: " + taskID, check ? "Checked" : "Unchecked");
                     OnRecievedJson(obj, true);
                     break;
@@ -205,7 +205,7 @@ namespace WebHost
         private byte[] RecieveUnencryptedData()
         {
             byte[] fullPackage;
-            byte[] finalBytes = new byte[4];
+            byte[] finalBytes = new byte[6];
 
             byte[] recievedBytes = new byte[1024];
             MemoryStream byteStream = new MemoryStream();
@@ -219,10 +219,10 @@ namespace WebHost
                     bytesRead = stream.Read(recievedBytes, 0, recievedBytes.Length);
 
                     byteStream.Write(recievedBytes, 0, bytesRead);
-                    if (byteStream.Length > 4)
+                    if (byteStream.Length > 6)
                     {
-                        byteStream.Position -= 4;
-                        byteStream.Read(finalBytes, 0, 4);
+                        byteStream.Position -= 6;
+                        byteStream.Read(finalBytes, 0, 6);
                     }
                 } else
                 {
@@ -235,7 +235,10 @@ namespace WebHost
             while (!Enumerable.SequenceEqual(finalBytes, terminationBytes));
 
             fullPackage = byteStream.ToArray();
-            Array.Resize(ref fullPackage, fullPackage.Length - 4);
+            if (fullPackage.Length > 6)
+            {
+                Array.Resize(ref fullPackage, fullPackage.Length - 6);
+            }
 
             return fullPackage;
         }

@@ -45,27 +45,9 @@ namespace TaskPlanner
                 new Action(() => { HandleTasksRecieve(sender, args); }));
             webClient.RecievedTask += (sender, args) => dispatcher.BeginInvoke(
                 new Action(() => { HandleTaskRecieve(sender, args); }));
-            webClient.RenamedTask += (sender, args) => dispatcher.BeginInvoke(
-                new Action(() => { HandleTaskRename(sender, args); }));
-            webClient.CheckedTask += (sender, args) => dispatcher.BeginInvoke(
-                new Action(() => { HandleTaskCheck(sender, args); }));
             webClient.Connect("185.16.95.101");
 
             gridSplitter.DragDelta += SplitterNameDragDelta;
-        }
-
-        private void taskTree_CheckUpdated(object sender, CheckUpdatedEventArgs e)
-        {
-            webClient.TaskCheck(e.task.ID,e.check);
-            tasks.Check(e.task.ID,e.check);
-        }
-
-        private void taskTree_TextUpdated(object sender, TextUpdatedEventArgs e)
-        {
-            webClient.TaskRename(e.task,e.newName);
-            tasks.Rename(e.task, e.newName);
-            if (sideWindowTask.ID == e.task.ID)
-            { SideWindowUpdate(e.task); }
         }
 
         private void taskTree_SelectionChanged(object sender, RoutedEventArgs e)
@@ -133,11 +115,6 @@ namespace TaskPlanner
         {
             PopulateList();
         }
-        private void HandleTaskCheck(object sender, CheckedTaskEventArgs e)
-        {
-            string id = e.taskID;
-            taskTree.RefreshNode(id);
-        }
 
         private void HandleTaskRecieve(object sender, RecievedTaskEventArgs e)
         {
@@ -148,11 +125,6 @@ namespace TaskPlanner
             else
             { taskTree.AddNode(task, parent, false); }
             
-        }
-        private void HandleTaskRename(object sender, RenamedTaskEventArgs e)
-        {
-            string id = e.taskID;
-            taskTree.RefreshNode(id);
         }
 
         #endregion
@@ -183,7 +155,7 @@ namespace TaskPlanner
         private void SideWindowUpdate(Task task)
         {
             sideWindowTask = task;
-            textBoxTaskName.Text = task.title;
+            textBoxTaskName.Text = task.name;
             textBoxTaskDescription.Text = task.description;
             datePickerDue.SelectedDate = task.timeDue;
             SideWindowEnable(true);
@@ -200,12 +172,10 @@ namespace TaskPlanner
             if (sideWindowTask != null)
             {
                 if (newTitle == "")
-                { textBoxTaskName.Text = sideWindowTask.title; }
-                else if (sideWindowTask.title != newTitle)
+                { textBoxTaskName.Text = sideWindowTask.name; }
+                else
                 {
-                    sideWindowTask.title = newTitle;
-                    taskTree.RefreshNode(sideWindowTask.ID);
-                    webClient.TaskRename(sideWindowTask.ID, newTitle);
+                    sideWindowTask.Rename(newTitle,this);
                 }
             }
         }
