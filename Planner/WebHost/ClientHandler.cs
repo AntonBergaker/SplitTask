@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TaskFunctions;
+using System.Security.Cryptography;
 
 namespace WebHost
 {
@@ -20,10 +21,14 @@ namespace WebHost
         Thread thread;
         public int ID;
         private readonly byte[] terminationBytes = new byte[] { 0x15, 0xba, 0xfc, 0x61 };
+        RSACryptoServiceProvider RSA;
+        ICryptoTransform encryptor;
+        ICryptoTransform decryptor;
 
-        public ClientHandler(int ID)
+        public ClientHandler(int ID, RSACryptoServiceProvider RSA)
         {
             this.ID = ID;
+            this.RSA = RSA;
         }
 
         public void StartClient(TcpClient client, TaskCollection tasks)
@@ -103,24 +108,101 @@ namespace WebHost
 
         private void SendHandShake()
         {
-            string message = RecieveDataString();
+            string message = RecieveUnencryptedDataString();
             if (message == "Ey waddup?")
             {
                 Console.WriteLine("Recieved correct identifier: "+ '"'+message+'"');
-                SendData(tasks.ExportString());
+
+                SendUnencryptedData(RSA.ExportCspBlob(false));
+
+
+                byte[] keyAndIV = RSA.Decrypt(RecieveUnencryptedData(),false);
+                byte[] key = keyAndIV.Take(32).ToArray();
+                byte[] IV = keyAndIV.Skip(32).ToArray();
+
+
+                RijndaelManaged RIJ = new RijndaelManaged();
+                RIJ.IV = IV;
+                RIJ.Key = key;
+
+                decryptor = RIJ.CreateDecryptor(RIJ.Key, RIJ.IV);
+                encryptor =  RIJ.CreateEncryptor(RIJ.Key,RIJ.IV);
+
+                SendUnencryptedData(Encrypt(Encoding.UTF8.GetBytes(tasks.ExportString())));
                 MainLoop();
             }
         }
+
+        private byte[] Decrypt(byte[] data)
+        {
+            byte[] decrypted;
+            // Create the streams used for decryption. 
+            using (MemoryStream msDecrypt = new MemoryStream(data))
+            {
+                using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                {
+                    using (StreamReader srDecrypt = new StreamReader(csDecrypt))
+                    {
+
+                        // Read the decrypted bytes from the decrypting stream 
+                        // and place them in a string.
+                        decrypted = Encoding.UTF8.GetBytes(srDecrypt.ReadToEnd());
+                    }
+                }
+            }
+
+            return decrypted;
+        }
+
+        private byte[] Encrypt(byte[] data)
+        {
+            byte[] encrypted;
+            using (MemoryStream msEncrypt = new MemoryStream())
+            {
+                using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                {
+                    using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+                    {
+
+                        //Write all data to the stream.
+                        swEncrypt.Write(Encoding.UTF8.GetString(data));
+                    }
+                    encrypted = msEncrypt.ToArray();
+                }
+
+
+                // Return the encrypted bytes from the memory stream. 
+                return encrypted;
+            }
+        }
+
+
+        public void SendUnencryptedData(byte[] data)
+        {
+            byte[] sendBytes = data.Concat(terminationBytes).ToArray();
+            stream.Write(sendBytes, 0, sendBytes.Length);
+            stream.Flush();
+        }
         public void SendData(string data)
         {
-            byte[] sendBytes = Encoding.UTF8.GetBytes(data).Concat(terminationBytes).ToArray();
+            byte[] sendBytes = Encrypt(Encoding.UTF8.GetBytes(data)).Concat(terminationBytes).ToArray();
             stream.Write(sendBytes, 0, sendBytes.Length);
             stream.Flush();
         }
         private string RecieveDataString()
         { return Encoding.UTF8.GetString(RecieveData()); }
+        
+        private string RecieveUnencryptedDataString()
+        {
+            return Encoding.UTF8.GetString(RecieveUnencryptedData());
+        }
 
         private byte[] RecieveData()
+        {
+            return Decrypt(RecieveUnencryptedData());
+        }
+
+        private byte[] RecieveUnencryptedData()
         {
             byte[] fullPackage;
             byte[] finalBytes = new byte[4];
@@ -147,7 +229,7 @@ namespace WebHost
                     timeoutTimer += 2;
                     Thread.Sleep(2);
                     if (timeoutTimer > 10000)
-                    { break; }
+                    { return new byte[0]; }
                 }
             }
             while (!Enumerable.SequenceEqual(finalBytes, terminationBytes));

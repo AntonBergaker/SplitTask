@@ -9,6 +9,7 @@ using System.Net.Sockets;
 using Planner;
 using System.Threading;
 using TaskFunctions;
+using System.Security.Cryptography;
 
 namespace WebHost
 {
@@ -17,6 +18,7 @@ namespace WebHost
         List<ClientHandler> clients = new List<ClientHandler>();
         TcpListener serverSocket;
         TaskCollection tasks;
+        RSACryptoServiceProvider RSA;
 
         public WebServer(TaskCollection tasks)
         {
@@ -29,6 +31,7 @@ namespace WebHost
             TcpClient clientSocket;
 
             int clientCount = 0;
+            RSA = new RSACryptoServiceProvider();
 
             try
             {
@@ -41,7 +44,7 @@ namespace WebHost
             {
                 clientSocket = serverSocket.AcceptTcpClient();
                 Console.WriteLine("Client Connected");
-                ClientHandler client = new ClientHandler(clientCount);
+                ClientHandler client = new ClientHandler(clientCount, RSA);
                 client.RecievedJson += new EventHandler<RecievedJsonEventArgs>(HandleJson);
                 clientCount++;
 

@@ -8,18 +8,23 @@ using System.IO;
 using System.Diagnostics;
 using System.Threading;
 using System.Linq;
+using System.Security.Cryptography;
 using Newtonsoft.Json.Linq;
 
 namespace TaskFunctions
 {
     class TaskWebClient
     {
+
         private TaskCollection tasks;
         private IPAddress address;
         private TcpClient client;
         private NetworkStream stream;
         private bool handShaken;
         private bool running;
+        private byte[] streamKeys;
+        private ICryptoTransform decryptor;
+        private ICryptoTransform encryptor;
         private readonly byte[] terminationBytes = new byte[] { 0x15, 0xba, 0xfc, 0x61 };
 
         public TaskWebClient(TaskCollection tasks)
@@ -64,16 +69,19 @@ namespace TaskFunctions
 
         public void TaskAdd(Task task, Task parentTask = null)
         {
-            JObject obj = new JObject();
-            obj.Add("type", "AddTask");
-            if (parentTask != null)
+            if (handShaken)
             {
-                obj.Add("parent", parentTask.ID);
+                JObject obj = new JObject();
+                obj.Add("type", "AddTask");
+                if (parentTask != null)
+                {
+                    obj.Add("parent", parentTask.ID);
+                }
+                else
+                { obj.Add("parent", null); }
+                obj.Add("task", task.ToJObject());
+                SendData(obj.ToString());
             }
-            else
-            { obj.Add("parent", null); }
-            obj.Add("task", task.ToJObject());
-            SendData(obj.ToString());
         }
         public void TaskRename(Task task, string newName)
         {
@@ -81,19 +89,25 @@ namespace TaskFunctions
         }
         public void TaskRename(string taskID, string newName)
         {
-            JObject obj = new JObject();
-            obj.Add("type", "RenameTask");
-            obj.Add("ID", taskID);
-            obj.Add("newName", newName);
-            SendData(obj.ToString());
+            if (handShaken)
+            {
+                JObject obj = new JObject();
+                obj.Add("type", "RenameTask");
+                obj.Add("ID", taskID);
+                obj.Add("newName", newName);
+                SendData(obj.ToString());
+            }
         }
-        public void TaskCheck(string taskID,bool check)
+        public void TaskCheck(string taskID, bool check)
         {
-            JObject obj = new JObject();
-            obj.Add("type", "CheckTask");
-            obj.Add("ID", taskID);
-            obj.Add("check", check);
-            SendData(obj.ToString());
+            if (handShaken)
+            {
+                JObject obj = new JObject();
+                obj.Add("type", "CheckTask");
+                obj.Add("ID", taskID);
+                obj.Add("check", check);
+                SendData(obj.ToString());
+            }
         }
 
         private void MainLoop()
@@ -142,7 +156,7 @@ namespace TaskFunctions
                         tasks.Add(task);
                     }
                     Console.WriteLine("Made a new task: " + task.title + "(" + task.ID + ")");
-                    OnRecievedTask(task,parentTask);
+                    OnRecievedTask(task, parentTask);
                     break;
                 case "RenameTask":
                     taskID = (string)obj["ID"];
@@ -155,8 +169,8 @@ namespace TaskFunctions
                     taskID = (string)obj["ID"];
                     bool check = (bool)obj["check"];
                     tasks.Check(taskID, check);
-                    Console.WriteLine("{0} the task: " + taskID,check? "Checked" : "Unchecked");
-                    OnCheckedTask(taskID,check);
+                    Console.WriteLine("{0} the task: " + taskID, check ? "Checked" : "Unchecked");
+                    OnCheckedTask(taskID, check);
                     break;
             }
         }
@@ -167,26 +181,101 @@ namespace TaskFunctions
 
         private void Handshake()
         {
-            SendData("Ey waddup?",true);
-            string message = RecieveDataString();
-            tasks.ImportText(message);
+            SendUnencryptedData("Ey waddup?");
+            byte[] blob = RecieveUnencryptedData();
+
+            RSACryptoServiceProvider RSA = new RSACryptoServiceProvider();
+            RSA.ImportCspBlob(blob);
+
+            RijndaelManaged RIJ = new RijndaelManaged();
+            RIJ.GenerateKey();
+            RIJ.GenerateIV();
+            decryptor = RIJ.CreateDecryptor(RIJ.Key,RIJ.IV);
+            encryptor = RIJ.CreateEncryptor(RIJ.Key, RIJ.IV);
+            streamKeys = RIJ.Key.Concat(RIJ.IV).ToArray();
+
+            SendUnencryptedData(RSA.Encrypt(streamKeys, false));
+
+            byte[] message = Decrypt(RecieveUnencryptedData());
+
+            string text = Encoding.UTF8.GetString(message);
+
+            tasks.ImportText(text);
             OnRecievedTasks();
             handShaken = true;
             MainLoop();
         }
-        private void SendData(string data, bool forceSend = false)
+
+        private byte[] Decrypt(byte[] data)
         {
-            if (handShaken || forceSend)
+            byte[] decrypted;
+            // Create the streams used for decryption. 
+            using (MemoryStream msDecrypt = new MemoryStream(data))
             {
-                byte[] sendBytes = Encoding.UTF8.GetBytes(data).Concat(terminationBytes).ToArray();
-                stream.Write(sendBytes, 0, sendBytes.Length);
-                stream.Flush();
+                using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                {
+                    using (StreamReader srDecrypt = new StreamReader(csDecrypt))
+                    {
+
+                        // Read the decrypted bytes from the decrypting stream 
+                        // and place them in a string.
+                        decrypted = Encoding.UTF8.GetBytes(srDecrypt.ReadToEnd());
+                    }
+                }
             }
+
+            return decrypted;
+        }
+        private byte[] Encrypt(byte[] data)
+        {
+            byte[] encrypted;
+            using (MemoryStream msEncrypt = new MemoryStream())
+            {
+                using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                {
+                    using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+                    {
+
+                        //Write all data to the stream.
+                        swEncrypt.Write(Encoding.UTF8.GetString(data));
+                    }
+                    encrypted = msEncrypt.ToArray();
+                }
+
+
+                // Return the encrypted bytes from the memory stream. 
+                return encrypted;
+            }
+        }
+
+
+        private void SendUnencryptedData(string text)
+        {
+            SendUnencryptedData(Encoding.UTF8.GetBytes(text));
+        }
+
+        private void SendUnencryptedData(byte[] data)
+        {
+            byte[] sendBytes = data.Concat(terminationBytes).ToArray();
+            stream.Write(sendBytes, 0, sendBytes.Length);
+            stream.Flush();
+        }
+
+        private void SendData(string data)
+        {
+            byte[] sendBytes = Encrypt(Encoding.UTF8.GetBytes(data)).Concat(terminationBytes).ToArray();
+            stream.Write(sendBytes, 0, sendBytes.Length);
+            stream.Flush();
         }
         private string RecieveDataString()
         { return Encoding.UTF8.GetString(RecieveData()); }
 
         private byte[] RecieveData()
+        {
+            return Decrypt(RecieveUnencryptedData());
+        }
+
+        private byte[] RecieveUnencryptedData()
         {
             byte[] fullPackage;
 
