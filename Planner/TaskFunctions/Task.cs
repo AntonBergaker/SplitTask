@@ -105,6 +105,16 @@ namespace Planner
                 OnRenamed(newName,oldName,sender);
             }
         }
+        public void DescriptionChange(string newDescription, object sender)
+        {
+            if (newDescription != description)
+            {
+                string oldDescription = description;
+                description = newDescription;
+                OnDescriptionChanged(newDescription, oldDescription, sender);
+            }
+        }
+
         public void Check(bool check, object sender)
         {
             if (check != isCompleted)
@@ -115,10 +125,13 @@ namespace Planner
                 OnChecked(check,sender);
             }
         }
-
-        public override string ToString()
+        public void FolderChange(bool isFolder, object sender)
         {
-            return name + '(' +id + ')';
+            if (this.isFolder != isFolder)
+            {
+                this.isFolder = isFolder;
+                OnFolderChanged(isFolder,sender);
+            }
         }
 
 
@@ -148,6 +161,36 @@ namespace Planner
             }
         }
 
+        public event EventHandler<TaskDescriptionChangedEventArgs> TaskDescriptionChanged;
+        protected virtual void OnDescriptionChanged(string newDescription,string oldDescription, object sender)
+        {
+            if (TaskDescriptionChanged != null)
+            {
+                TaskDescriptionChangedEventArgs e = new TaskDescriptionChangedEventArgs();
+                e.newDescription = newDescription;
+                e.oldDescription = oldDescription;
+                e.task = this;
+                e.originalSender = sender;
+                TaskDescriptionChanged(this, e);
+            }
+        }
 
+        public event EventHandler<TaskFolderChangedEventArgs> TaskFolderChanged;
+        protected virtual void OnFolderChanged(bool isFolder, object sender)
+        {
+            if (TaskFolderChanged != null)
+            {
+                TaskFolderChangedEventArgs e = new TaskFolderChangedEventArgs();
+                e.isFolder = isFolder;
+                e.task = this;
+                e.originalSender = sender;
+                TaskFolderChanged(this, e);
+            }
+        }
+
+        public override string ToString()
+        {
+            return name + '(' + id + ')';
+        }
     }
 }

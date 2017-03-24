@@ -103,6 +103,20 @@ namespace WebHost
                     Console.WriteLine("{0} the task: " + taskID, check ? "Checked" : "Unchecked");
                     OnRecievedJson(obj, true);
                     break;
+                case "DescriptionChange":
+                    taskID = (string)obj["ID"];
+                    string description = (string)obj["description"];
+                    tasks.DescriptionChange(taskID, description, this);
+                    Console.WriteLine("Added the description \"" + description + "\" to " + taskID);
+                    OnRecievedJson(obj, true);
+                    break;
+                case "FolderChange":
+                    taskID = (string)obj["ID"];
+                    bool isFolder = (bool)obj["isFolder"];
+                    tasks.FolderChange(taskID, isFolder, this);
+                    Console.WriteLine("Set the task " + taskID + " to a {0}", isFolder ? "folder" : "task");
+                    OnRecievedJson(obj, true);
+                    break;
             }
         }
 

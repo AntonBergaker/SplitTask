@@ -19,6 +19,7 @@
                 <materialDesign:PackIcon x:Name="expanderArrow" Kind="MenuRight" Height="18" Width="18" Foreground="#BB000000" RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Left" VerticalAlignment="Center"/>
             </Grid>
             <CheckBox x:Name="checkBox" Content="" HorizontalAlignment="Left" Margin="28,5,0,5" VerticalAlignment="Top" Cursor="Hand" Width="18" Checked="checkBox_Checked" Unchecked="checkBox_Unchecked" Click="checkBox_Click"/>
+            <materialDesign:PackIcon x:Name="folderIcon" Kind="Folder" Margin="29,6,0,0" Foreground="#BB000000"/>
             <TextBox x:Name="textBox" MinWidth="10" Margin="53,3,-2,3" TextWrapping="Wrap" Text="TextBox" HorizontalAlignment="Left" VerticalAlignment="Top" BorderThickness="0" GotFocus="textBox_GotFocus" LostFocus="textBox_LostFocus" KeyDown="textBox_KeyDown"/>
         </Grid>
     </Grid>

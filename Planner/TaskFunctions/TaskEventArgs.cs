@@ -19,7 +19,7 @@ namespace TaskFunctions
     {
         public bool check;
     }
-    public class TaskChangedDescriptionEventArgs : TaskEventArgs
+    public class TaskDescriptionChangedEventArgs : TaskEventArgs
     {
         public string oldDescription;
         public string newDescription;
@@ -28,6 +28,10 @@ namespace TaskFunctions
     {
         public Task parentTask;
         public Task taskUnder;
+    }
+    public class TaskFolderChangedEventArgs : TaskEventArgs
+    {
+        public bool isFolder;
     }
 
 }

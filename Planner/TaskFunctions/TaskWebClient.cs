@@ -44,14 +44,6 @@ namespace TaskFunctions
             AddEventsToTasks(tasks.tasks);
             Connect(address);
         }
-
-        private void AddEventsToTask(Task task)
-        {
-            task.TaskChecked += Task_TaskChecked;
-            task.TaskRenamed += Task_TaskRenamed;
-        }
-
-
         private void AddEventsToTasks(List<Task> tasks)
         {
             foreach (Task t in tasks)
@@ -61,16 +53,34 @@ namespace TaskFunctions
             }
         }
 
-        private void Tasks_TaskAdded(object sender, TaskAddedEventArgs e)
+        private void AddEventsToTask(Task task)
         {
-            AddEventsToTask(e.task);
+            task.TaskChecked += Task_TaskChecked;
+            task.TaskRenamed += Task_TaskRenamed;
+            task.TaskFolderChanged += Task_TaskFolderChanged;
+            task.TaskDescriptionChanged += Task_TaskDescriptionChanged;
+        }
+
+        private void Task_TaskFolderChanged(object sender, TaskFolderChangedEventArgs e)
+        {
+            if (e.originalSender != this)
+            {
+                TaskFolderChange(e.task.ID, e.isFolder);
+            }
+        }
+
+        private void Task_TaskDescriptionChanged(object sender, TaskDescriptionChangedEventArgs e)
+        {
+            if (e.originalSender != this)
+            {
+                TaskDescriptionChange(e.task.ID, e.newDescription);
+            }
         }
 
         private void Task_TaskRenamed(object sender, TaskRenamedEventArgs e)
         {
             if (e.originalSender != this)
             {
-                Task task = e.task;
                 TaskRename(e.task.ID,e.newName);
             }
         }
@@ -79,9 +89,13 @@ namespace TaskFunctions
         {
             if (e.originalSender != this)
             {
-                Task task = e.task;
-                TaskCheck(task.ID, e.check);
+                TaskCheck(e.task.ID, e.check);
             }
+        }
+
+        private void Tasks_TaskAdded(object sender, TaskAddedEventArgs e)
+        {
+            AddEventsToTask(e.task);
         }
 
         public void Connect(string address)
@@ -152,6 +166,28 @@ namespace TaskFunctions
                 SendData(obj.ToString());
             }
         }
+        public void TaskDescriptionChange(string taskID, string newDescription)
+        {
+            if (handShaken)
+            {
+                JObject obj = new JObject();
+                obj.Add("type", "DescriptionChange");
+                obj.Add("ID", taskID);
+                obj.Add("description", newDescription);
+                SendData(obj.ToString());
+            }
+        }
+        public void TaskFolderChange(string taskID, bool isFolder)
+        {
+            if (handShaken)
+            {
+                JObject obj = new JObject();
+                obj.Add("type", "FolderChange");
+                obj.Add("ID", taskID);
+                obj.Add("isFolder", isFolder);
+                SendData(obj.ToString());
+            }
+        }
 
         private void MainLoop()
         {
@@ -213,6 +249,18 @@ namespace TaskFunctions
                     bool check = (bool)obj["check"];
                     tasks.Check(taskID, check, this);
                     Console.WriteLine("{0} the task: " + taskID, check ? "Checked" : "Unchecked");
+                    break;
+                case "DescriptionChange":
+                    taskID = (string)obj["ID"];
+                    string description = (string)obj["description"];
+                    tasks.DescriptionChange(taskID, description, this);
+                    Console.WriteLine("Added the description \"" + description + "\" to "+taskID);
+                    break;
+                case "FolderChange":
+                    taskID = (string)obj["ID"];
+                    bool isFolder = (bool)obj["isFolder"];
+                    tasks.FolderChange(taskID, isFolder, this);
+                    Console.WriteLine("Set the task " + taskID + "to a {0}", isFolder ? " folder" : "task");
                     break;
             }
         }

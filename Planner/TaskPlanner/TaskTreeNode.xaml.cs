@@ -43,6 +43,8 @@ namespace TaskPlanner
                 new Action(() => { Task_TaskChecked(sender, args); }));
             task.TaskRenamed += (sender, args) => dispatcher.BeginInvoke(
                 new Action(() => { Task_TaskRenamed(sender, args); }));
+            task.TaskFolderChanged += (sender, args) => dispatcher.BeginInvoke(
+                new Action(() => { Task_TaskFolderChanged(sender, args); }));
 
             isExpanded = true;
             defaultExpanderBrush = (SolidColorBrush)expanderArrow.Foreground;
@@ -53,6 +55,12 @@ namespace TaskPlanner
             Refresh();
         }
 
+        private void Task_TaskFolderChanged(object sender, TaskFolderChangedEventArgs e)
+        {
+            if (e.originalSender != this)
+            { Refresh(); }
+        }
+
         private void Task_TaskRenamed(object sender, TaskRenamedEventArgs e)
         {
             if (e.originalSender != this)
@@ -61,8 +69,6 @@ namespace TaskPlanner
 
         private void Task_TaskChecked(object sender, TaskCheckedEventArgs e)
         {
-            Console.WriteLine(e.originalSender);
-            Console.WriteLine(this);
             if (e.originalSender != this)
             { Refresh(); }
         }
@@ -73,6 +79,7 @@ namespace TaskPlanner
             checkBox.IsChecked = task.isCompleted;
             offsetGrid.Margin = new Thickness(depth * 30, 0, 0, 0);
             ExpanderRefresh();
+            FolderRefresh();
         }
         public void Rename()
         {
@@ -81,6 +88,24 @@ namespace TaskPlanner
             {
                 textBox.Focus();
             }));
+        }
+
+        private void FolderRefresh()
+        {
+            if (task.isFolder)
+            {
+                folderIcon.IsEnabled = true;
+                folderIcon.Visibility = Visibility.Visible;
+                checkBox.IsEnabled = false;
+                checkBox.Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                folderIcon.IsEnabled = false;
+                folderIcon.Visibility = Visibility.Hidden;
+                checkBox.IsEnabled = true;
+                checkBox.Visibility = Visibility.Visible;
+            }
         }
 
         public void ExpanderRefresh()

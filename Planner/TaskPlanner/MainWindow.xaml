@@ -51,8 +51,10 @@
 
                         <TextBox x:Name="textBoxTaskName" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Task Name" Height="auto" Margin="40,19,40,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="17" ToolTip="Task Name" TextAlignment="Center" LostFocus="textBoxTaskName_LostFocus" KeyDown="textBoxTaskName_KeyDown"/>
                         <Separator Margin="0,-1,0,0" VerticalAlignment="Top"/>
-                        <TextBox x:Name="textBoxTaskDescription" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Notes" Height="auto" Margin="40,31,40,0" TextWrapping="Wrap" VerticalAlignment="Top" ToolTip="Task Description" TextAlignment="Left"/>
+                        <TextBox x:Name="textBoxTaskDescription" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Notes" Height="auto" Margin="40,31,40,0" TextWrapping="Wrap" VerticalAlignment="Top" ToolTip="Task Description" TextAlignment="Left" KeyDown="textBoxTaskDescription_KeyDown" LostFocus="textBoxTaskDescription_LostFocus"/>
                         <DatePicker x:Name="datePickerDue" materialDesign:HintAssist.Hint="Due Date" Style="{StaticResource MaterialDesignFloatingHintDatePicker}" VerticalAlignment="Top" Height="30" SelectedDateFormat="Long" Margin="40,40,40,0" FirstDayOfWeek="Monday"/>
+                        <TextBlock Text="Folder" Margin="38,44,0,0" HorizontalAlignment="Left"/>
+                        <ToggleButton Margin="94,-17,0,0" HorizontalAlignment="Left" Checked="ToggleButton_Checked" Unchecked="ToggleButton_Unchecked"/>
                     </StackPanel>
                 </ScrollViewer>
             </Grid>

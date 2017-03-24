@@ -27,6 +27,9 @@ namespace TaskPlanner
         Task sideWindowTask;
         Control[] sideWindowControls;
 
+        EventHandler<TaskRenamedEventArgs> eventHandlerRenamed;
+        EventHandler<TaskDescriptionChangedEventArgs> eventHandlerDescriptionChanged;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -36,6 +39,11 @@ namespace TaskPlanner
             Panel parentPanel = (Panel)menuFile.Parent;
             parentPanel.Children.Remove(menuFile);
             expander.Content = menuFile;
+
+            eventHandlerRenamed = (sender, args) => dispatcher.BeginInvoke(
+                 new Action(() => { Task_TaskRenamed(sender, args); }));
+            eventHandlerDescriptionChanged = (sender, args) => dispatcher.BeginInvoke(
+                 new Action(() => { Task_TaskDescriptionChanged(sender, args); }));
 
             sideWindowControls = new Control[] { textBoxTaskName, textBoxTaskDescription, datePickerDue};
             SideWindowEnable(false);
@@ -147,19 +155,52 @@ namespace TaskPlanner
 
         private void SideWindowClear()
         {
+            SideWindowRemoveEvents();
+            sideWindowTask = null;
             textBoxTaskName.Text = "";
             textBoxTaskDescription.Text = "";
             datePickerDue.SelectedDate = null;
             SideWindowEnable(false);
         }
+        private void SideWindowRemoveEvents()
+        {
+            if (sideWindowTask != null)
+            {
+                var dispatcher = System.Windows.Application.Current.MainWindow.Dispatcher;
+                sideWindowTask.TaskRenamed -= eventHandlerRenamed;
+                sideWindowTask.TaskDescriptionChanged -= eventHandlerDescriptionChanged;
+                Console.WriteLine("Removed event");
+            }
+        }
+
         private void SideWindowUpdate(Task task)
         {
+            task.TaskRenamed += eventHandlerRenamed;
+            task.TaskDescriptionChanged += eventHandlerDescriptionChanged;
+
+            SideWindowRemoveEvents();
             sideWindowTask = task;
             textBoxTaskName.Text = task.name;
             textBoxTaskDescription.Text = task.description;
             datePickerDue.SelectedDate = task.timeDue;
             SideWindowEnable(true);
         }
+
+        private void Task_TaskRenamed(object sender, TaskRenamedEventArgs e)
+        {
+            if (sender != this)
+            {
+                textBoxTaskName.Text = e.newName;
+            }
+        }
+        private void Task_TaskDescriptionChanged(object sender, TaskDescriptionChangedEventArgs e)
+        {
+            if (sender != this)
+            {
+                textBoxTaskDescription.Text = e.newDescription;
+            }
+        }
+
         private void SideWindowEnable(bool enabled)
         {
             foreach (Control c in sideWindowControls)
@@ -175,8 +216,25 @@ namespace TaskPlanner
                 { textBoxTaskName.Text = sideWindowTask.name; }
                 else
                 {
-                    sideWindowTask.Rename(newTitle,this);
+                    sideWindowTask.Rename(newTitle, this);
                 }
+            }
+        }
+
+
+        private void textBoxTaskDescription_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                ResetFocus(this);
+            }
+        }
+
+        private void textBoxTaskDescription_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sideWindowTask != null)
+            {
+                sideWindowTask.DescriptionChange(textBoxTaskDescription.Text, this);
             }
         }
 
@@ -193,6 +251,18 @@ namespace TaskPlanner
             var scope = FocusManager.GetFocusScope(obj); // elem is the UIElement to unfocus
             FocusManager.SetFocusedElement(scope, null); // remove logical focus
             Keyboard.ClearFocus(); // remove keyboard focus
+        }
+
+        private void ToggleButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if (sideWindowTask != null)
+            { sideWindowTask.FolderChange(true, this); }
+        }
+
+        private void ToggleButton_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (sideWindowTask != null)
+            { sideWindowTask.FolderChange(false, this); }
         }
     }
 }

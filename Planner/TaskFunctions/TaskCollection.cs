@@ -87,7 +87,20 @@ namespace Planner
                 Add(newTask, IDDictionary[parentTaskID]);
             }
         }
-
+        public void DescriptionChange(string ID, string newDescription, object sender)
+        {
+            if (IDDictionary.ContainsKey(ID))
+            {
+                IDDictionary[ID].DescriptionChange(newDescription, sender);
+            }
+        }
+        public void FolderChange(string ID, bool isFolder, object sender)
+        {
+            if (IDDictionary.ContainsKey(ID))
+            {
+                IDDictionary[ID].FolderChange(isFolder,sender);
+            }
+        }
 
         public void Rename(string ID, string name, object sender)
         {
