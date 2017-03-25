@@ -3,22 +3,22 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitTask.WebHost", "WebHost\SplitTask.WebHost.csproj", "{767CD51F-B7D1-4195-BDC3-386B99D78D33}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitTask.WebHost", "SplitTask.WebHost\SplitTask.WebHost.csproj", "{767CD51F-B7D1-4195-BDC3-386B99D78D33}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SplitTask.Common", "TaskFunctions\SplitTask.Common.shproj", "{D9272065-E652-4FBE-9257-3B84D83114E3}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SplitTask.Common", "SplitTask.Common\SplitTask.Common.shproj", "{D9272065-E652-4FBE-9257-3B84D83114E3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleReadPlanner", "SimpleReadPlanner\SimpleReadPlanner.csproj", "{C09613FC-6101-456D-95B8-D656A3B541F7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitTask", "TaskPlanner\SplitTask.csproj", "{148EDDCC-6323-4F18-BEA8-44F281787380}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitTask", "SplitTask\SplitTask.csproj", "{148EDDCC-6323-4F18-BEA8-44F281787380}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DummyProjectThatBootsManyClients", "DummyProjectThatBootsManyTaskPlanners\DummyProjectThatBootsManyClients.csproj", "{4898BA67-D098-49A3-9292-3B9661242297}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		TaskFunctions\TaskFunctions.projitems*{148eddcc-6323-4f18-bea8-44f281787380}*SharedItemsImports = 4
-		TaskFunctions\TaskFunctions.projitems*{767cd51f-b7d1-4195-bdc3-386b99d78d33}*SharedItemsImports = 4
-		TaskFunctions\TaskFunctions.projitems*{c09613fc-6101-456d-95b8-d656a3b541f7}*SharedItemsImports = 4
-		TaskFunctions\TaskFunctions.projitems*{d9272065-e652-4fbe-9257-3b84d83114e3}*SharedItemsImports = 13
+		SplitTask.Common\SplitTask.Common.projitems*{148eddcc-6323-4f18-bea8-44f281787380}*SharedItemsImports = 4
+		SplitTask.Common\SplitTask.Common.projitems*{767cd51f-b7d1-4195-bdc3-386b99d78d33}*SharedItemsImports = 4
+		SplitTask.Common\SplitTask.Common.projitems*{c09613fc-6101-456d-95b8-d656a3b541f7}*SharedItemsImports = 4
+		SplitTask.Common\SplitTask.Common.projitems*{d9272065-e652-4fbe-9257-3b84d83114e3}*SharedItemsImports = 13
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
