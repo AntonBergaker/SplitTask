@@ -1,10 +1,10 @@
 ﻿using Newtonsoft.Json.Linq;
-using Planner;
+using SplitTask;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace TaskFunctions
+namespace SplitTask.Common
 {
     //TODO more consistent.
     class RecievedDataEventArgs : EventArgs

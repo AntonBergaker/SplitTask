@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
 
-namespace Planner
+namespace SplitTask.Common
 {
     static class Exporter
     {

@@ -1,9 +1,9 @@
-﻿using Planner;
+﻿using SplitTask;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace TaskFunctions
+namespace SplitTask.Common
 {
     public class TaskEventArgs : EventArgs
     {

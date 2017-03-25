@@ -4,9 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using TaskFunctions;
 
-namespace Planner
+namespace SplitTask.Common
 {
     public class Task
     {

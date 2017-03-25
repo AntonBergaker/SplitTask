@@ -10,9 +10,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using Planner;
 using System.Windows.Shapes;
-using TaskFunctions;
+using SplitTask.Common;
 
 namespace TaskPlanner
 {

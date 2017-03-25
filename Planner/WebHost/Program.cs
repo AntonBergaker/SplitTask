@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using Planner;
+using SplitTask;
 using System.Threading;
-using TaskFunctions;
+using SplitTask.Common;
 
-namespace WebHost
+namespace SplitTask.WebHost
 {
     class Program
     {

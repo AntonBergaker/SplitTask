@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json.Linq;
-using Planner;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,10 +7,10 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using TaskFunctions;
+using SplitTask.Common;
 using System.Security.Cryptography;
 
-namespace WebHost
+namespace SplitTask.WebHost
 {
     class ClientHandler
     {
@@ -72,11 +71,11 @@ namespace WebHost
         private void HandleData(JObject obj)
         {
             string type = (string)obj["type"];
-            Planner.Task task;
+            SplitTask.Common.Task task;
             switch (type)
             {
                 case "AddTask":
-                    task = Planner.Task.Parse((JObject)obj["task"]);
+                    task = SplitTask.Common.Task.Parse((JObject)obj["task"]);
                     string parentTask = (string)obj["parent"];
                     if (parentTask != null)
                     {

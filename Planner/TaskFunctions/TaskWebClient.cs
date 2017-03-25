@@ -1,5 +1,4 @@
-﻿using Planner;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Net;
@@ -11,7 +10,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using Newtonsoft.Json.Linq;
 
-namespace TaskFunctions
+namespace SplitTask.Common
 {
     class TaskWebClient
     {

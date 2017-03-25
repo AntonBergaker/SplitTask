@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 using System.IO;
 using Newtonsoft.Json;
 
-namespace Planner
+namespace SplitTask.Common
 {
     static class Importer
     {
