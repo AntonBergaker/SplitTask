@@ -20,9 +20,9 @@ namespace SplitTask.WebHost
         TaskCollection tasks;
         RSACryptoServiceProvider RSA;
 
-        public WebServer(TaskCollection tasks)
+        public WebServer(RSACryptoServiceProvider RSA)
         {
-            this.tasks = tasks;
+            this.RSA = RSA;
         }
 
         public void Start(int port)
@@ -31,7 +31,6 @@ namespace SplitTask.WebHost
             TcpClient clientSocket;
 
             int clientCount = 0;
-            RSA = new RSACryptoServiceProvider();
 
             try
             {
@@ -56,6 +55,11 @@ namespace SplitTask.WebHost
             serverSocket.Stop();
         }
 
+        /// <summary>
+        /// Sends incomming JSON to all other clients
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void HandleJson(object sender, RecievedJsonEventArgs e)
         {
             int senderID = e.senderID;

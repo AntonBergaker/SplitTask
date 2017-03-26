@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Sockets;
 using SplitTask;
 using System.Threading;
+using System.Security.Cryptography;
 using SplitTask.Common;
 
 namespace SplitTask.WebHost
@@ -17,15 +18,21 @@ namespace SplitTask.WebHost
         static void Main(string[] args)
         {
             TaskCollection tasks = new TaskCollection();
-            List<ClientHandler> clients = new List<ClientHandler>();
-            string path = "tasks.tlf";
+            RSACryptoServiceProvider RSA = new RSACryptoServiceProvider();
+
+            string path = "server_credentials.blob";
             if (File.Exists(path))
             {
-                tasks.ImportFile(path);
-                Console.WriteLine("Imported " + path + ". " + tasks.Count.ToString() + " tasks imported.");
+                byte[] blob = File.ReadAllBytes(path);
+                RSA.ImportCspBlob(blob);
+            }
+            else
+            {
+                byte[] blob = RSA.ExportCspBlob(true);
+                File.WriteAllBytes(path,blob);
             }
 
-            WebServer server = new WebServer(tasks);
+            WebServer server = new WebServer(RSA);
             server.Start(5171);
 
         }
