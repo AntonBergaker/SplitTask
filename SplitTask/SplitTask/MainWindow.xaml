@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TaskPlanner"
         mc:Ignorable="d"
-        Title="MainWindow" Height="659.803" Width="747.549"
+        Title="SplitTask" Height="659.803" Width="747.549"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
@@ -32,6 +32,7 @@
             </Rectangle>
             <StackPanel x:Name="menuFile" HorizontalAlignment="Left" Height="124" VerticalAlignment="Top" Width="110" RenderTransformOrigin="0.899,0.533" Panel.ZIndex="10" Background="White">
                 <Button x:Name="menuItemOpen" Style="{DynamicResource MaterialDesignFlatButton}" Margin="0" Click="MenuItemOpen_Click" Panel.ZIndex="11" Content="Open" Foreground="#BB000000"/>
+                <Button x:Name="menuItemExport" Style="{DynamicResource MaterialDesignFlatButton}" Margin="0" Panel.ZIndex="11" Content="Exportn" Foreground="#BB000000" Click="menuItemExport_Click"/>
             </StackPanel>
         </Grid>
         <Grid x:Name="mainGrid" Grid.Row="1">
@@ -54,7 +55,7 @@
                         <TextBox x:Name="textBoxTaskDescription" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Notes" Height="auto" Margin="40,31,40,0" TextWrapping="Wrap" VerticalAlignment="Top" ToolTip="Task Description" TextAlignment="Left" KeyDown="textBoxTaskDescription_KeyDown" LostFocus="textBoxTaskDescription_LostFocus"/>
                         <DatePicker x:Name="datePickerDue" materialDesign:HintAssist.Hint="Due Date" Style="{StaticResource MaterialDesignFloatingHintDatePicker}" VerticalAlignment="Top" Height="30" SelectedDateFormat="Long" Margin="40,40,40,0" FirstDayOfWeek="Monday"/>
                         <TextBlock Text="Folder" Margin="38,44,0,0" HorizontalAlignment="Left"/>
-                        <ToggleButton Margin="94,-17,0,0" HorizontalAlignment="Left" Checked="ToggleButton_Checked" Unchecked="ToggleButton_Unchecked"/>
+                        <ToggleButton x:Name="toggleButtonFolder" Margin="94,-17,0,0" HorizontalAlignment="Left" Checked="toggleButtonFolder_Checked" Unchecked="toggleButtonFolder_Unchecked"/>
                     </StackPanel>
                 </ScrollViewer>
             </Grid>

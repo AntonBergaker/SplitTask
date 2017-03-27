@@ -17,22 +17,26 @@ namespace SplitTask.WebHost
         TcpClient client;
         TaskCollection tasks;
         NetworkStream stream;
+        public User user;
         Thread thread;
         public int ID;
         private readonly byte[] terminationBytes = new byte[] { 0x15, 0xba, 0xfc, 0x61, 0xf1, 0x03 };
         RSACryptoServiceProvider RSA;
+        Dictionary<string, User> usersByKey;
+        Dictionary<string, User> usersByName;
         ICryptoTransform encryptor;
         ICryptoTransform decryptor;
 
-        public ClientHandler(int ID, RSACryptoServiceProvider RSA)
+        public ClientHandler(int ID, RSACryptoServiceProvider RSA, Dictionary<string,User> usersByKey, Dictionary<string,User> usersByName)
         {
             this.ID = ID;
             this.RSA = RSA;
+            this.usersByKey = usersByKey;
+            this.usersByName = usersByName;
         }
 
-        public void StartClient(TcpClient client, TaskCollection tasks)
+        public void StartClient(TcpClient client)
         {
-            this.tasks = tasks;
             this.client = client;
             stream = client.GetStream();
             thread = new Thread(SendHandShake);
@@ -70,80 +74,42 @@ namespace SplitTask.WebHost
         }
         private void HandleData(JObject obj)
         {
-            string type = (string)obj["type"];
-            SplitTask.Common.Task task;
-            switch (type)
-            {
-                case "AddTask":
-                    task = SplitTask.Common.Task.Parse((JObject)obj["task"]);
-                    string parentTask = (string)obj["parent"];
-                    if (parentTask != null)
-                    {
-                        tasks.Add(task, parentTask);
-                    }
-                    else
-                    {
-                        tasks.Add(task);
-                    }
-                    Console.WriteLine("made a new task: " + task.name + "(" + task.ID + ")");
-                    OnRecievedJson(obj, true);
-                    break;
-                case "RenameTask":
-                    string taskID = (string)obj["ID"];
-                    string newName = (string)obj["newName"];
-                    tasks.Rename(taskID,newName);
-                    Console.WriteLine("Renamed task: " + newName + "(" + taskID + ")");
-                    OnRecievedJson(obj,true);
-                    break;
-                case "CheckTask":
-                    taskID = (string)obj["ID"];
-                    bool check = (bool)obj["check"];
-                    tasks.Check(taskID, check, this);
-                    Console.WriteLine("{0} the task: " + taskID, check ? "Checked" : "Unchecked");
-                    OnRecievedJson(obj, true);
-                    break;
-                case "DescriptionChange":
-                    taskID = (string)obj["ID"];
-                    string description = (string)obj["description"];
-                    tasks.DescriptionChange(taskID, description, this);
-                    Console.WriteLine("Added the description \"" + description + "\" to " + taskID);
-                    OnRecievedJson(obj, true);
-                    break;
-                case "FolderChange":
-                    taskID = (string)obj["ID"];
-                    bool isFolder = (bool)obj["isFolder"];
-                    tasks.FolderChange(taskID, isFolder, this);
-                    Console.WriteLine("Set the task " + taskID + " to a {0}", isFolder ? "folder" : "task");
-                    OnRecievedJson(obj, true);
-                    break;
-            }
+            OnRecievedJson(obj);
         }
 
         private void SendHandShake()
         {
-            string message = RecieveUnencryptedDataString();
-            if (message == "Ey waddup?")
+
+            byte[] recievedData = RSA.Decrypt(RecieveUnencryptedData(),false);
+            byte[] key = recievedData.Take(32).ToArray();
+            byte[] IV = recievedData.Skip(32).Take(16).ToArray();
+
+            string password = Encoding.UTF8.GetString(recievedData.Skip(48).Take(32).ToArray());
+            string username = Encoding.UTF8.GetString(recievedData.Skip(80).ToArray());
+
+            if (usersByName.ContainsKey(username))
             {
-                Console.WriteLine("Recieved correct identifier: "+ '"'+message+'"');
+                if (usersByName[username].password == password)
+                {
+                    user = usersByName[username];
+                    Console.WriteLine("Logged in as "+username);
+                    RijndaelManaged RIJ = new RijndaelManaged();
+                    RIJ.IV = IV;
+                    RIJ.Key = key;
 
-                SendUnencryptedData(RSA.ExportCspBlob(false));
+                    decryptor = RIJ.CreateDecryptor(RIJ.Key, RIJ.IV);
+                    encryptor =  RIJ.CreateEncryptor(RIJ.Key,RIJ.IV);
 
+                    SendData("ey waddup?");
 
-                byte[] keyAndIV = RSA.Decrypt(RecieveUnencryptedData(),false);
-                byte[] key = keyAndIV.Take(32).ToArray();
-                byte[] IV = keyAndIV.Skip(32).ToArray();
+                    string[] servers = RecieveDataString().Split(',');
 
-
-                RijndaelManaged RIJ = new RijndaelManaged();
-                RIJ.IV = IV;
-                RIJ.Key = key;
-
-                decryptor = RIJ.CreateDecryptor(RIJ.Key, RIJ.IV);
-                encryptor =  RIJ.CreateEncryptor(RIJ.Key,RIJ.IV);
-
-                SendUnencryptedData(Encrypt(Encoding.UTF8.GetBytes(tasks.ExportString())));
-                MainLoop();
+                    OnAuthenticated(servers);
+                    MainLoop();
+                }
             }
+
+
         }
 
         private byte[] Decrypt(byte[] data)
@@ -256,21 +222,38 @@ namespace SplitTask.WebHost
             return fullPackage;
         }
 
-        public event EventHandler<RecievedJsonEventArgs> RecievedJson;
+        public event EventHandler<AuthenticatedEventArgs> Authenticated;
         /// <summary>
         /// Called when recieved Json that should be sent to all clients.
         /// </summary>
-        protected virtual void OnRecievedJson(JObject obj, bool sendToAll = true)
+        protected virtual void OnAuthenticated(string[] taskServers)
+        {
+            if (Authenticated != null)
+            {
+                AuthenticatedEventArgs e = new AuthenticatedEventArgs();
+                e.servers = taskServers;
+                Authenticated(this, e);
+            }
+        }
+
+        public event EventHandler<RecievedJsonEventArgs> RecievedJson;
+        /// <summary>
+        /// Called when recieved Json
+        /// </summary>
+        protected virtual void OnRecievedJson(JObject obj)
         {
             if (RecievedJson != null)
             {
                 RecievedJsonEventArgs e = new RecievedJsonEventArgs();
                 e.obj = obj;
                 e.senderID = ID;
-                e.sendToAll = sendToAll;
                 RecievedJson(this, e);
             }
         }
-
+    }
+    public class AuthenticatedEventArgs : EventArgs
+    {
+        public int senderID { get; set; }
+        public string[] servers;
     }
 }

@@ -10,20 +10,32 @@ namespace SplitTask.WebHost
     class User
     {
         public string username;
+        public string id;
         public string displayname;
-        public List<TaskServer> connectedToServers;
+        public string[] connectedToLists;
         public string email;
+        public string password;
 
         public User()
         {
 
         }
-        public User ImportFromJson(JObject obj)
+        public void GenerateID(Random randomGenerator)
+        {
+            byte[] randomValue = new byte[33];
+            randomGenerator.NextBytes(randomValue);
+            id = "U" + Convert.ToBase64String(randomValue).Replace("/", "-");
+        }
+
+        public static User ImportFromJson(JObject obj)
         {
             User user = new User();
-            user.username = (string)obj["name"];
+            user.username = (string)obj["username"];
+            user.id = (string)obj["id"];
             user.displayname = (string)obj["displayname"];
-            JArray array = (JArray)obj["servers"];
+            user.connectedToLists = obj["lists"].ToObject<string[]>();
+            user.email = (string)obj["email"];
+            user.password = (string)obj["password"];
 
             return user;
         }

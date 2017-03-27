@@ -55,7 +55,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="TaskServer.cs" />
     <Compile Include="User.cs" />
-    <Compile Include="Webserver.cs" />
+    <Compile Include="WebServer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

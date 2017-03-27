@@ -44,7 +44,7 @@ namespace TaskPlanner
             eventHandlerDescriptionChanged = (sender, args) => dispatcher.BeginInvoke(
                  new Action(() => { Task_TaskDescriptionChanged(sender, args); }));
 
-            sideWindowControls = new Control[] { textBoxTaskName, textBoxTaskDescription, datePickerDue};
+            sideWindowControls = new Control[] { textBoxTaskName, textBoxTaskDescription, datePickerDue, toggleButtonFolder};
             SideWindowEnable(false);
 
             webClient = new TaskWebClient(tasks);
@@ -84,7 +84,7 @@ namespace TaskPlanner
         private void buttonNewTask_Click(object sender, RoutedEventArgs e)
         {
             Task task = new Task("");
-            task.chooseID(randomGenerator);
+            task.GenerateID(randomGenerator);
             tasks.Add(task);
             webClient.TaskAdd(task);
             taskTree.AddNode(task);
@@ -98,7 +98,7 @@ namespace TaskPlanner
             {
                 Task task = new Task("");
                 Task parentTask = taskTree.selectedNodes[0].task;
-                task.chooseID(randomGenerator);
+                task.GenerateID(randomGenerator);
                 tasks.Add(task,parentTask);
                 webClient.TaskAdd(task,parentTask);
                 taskTree.AddNode(task,parentTask.ID,true);
@@ -168,7 +168,6 @@ namespace TaskPlanner
                 var dispatcher = System.Windows.Application.Current.MainWindow.Dispatcher;
                 sideWindowTask.TaskRenamed -= eventHandlerRenamed;
                 sideWindowTask.TaskDescriptionChanged -= eventHandlerDescriptionChanged;
-                Console.WriteLine("Removed event");
             }
         }
 
@@ -252,16 +251,21 @@ namespace TaskPlanner
             Keyboard.ClearFocus(); // remove keyboard focus
         }
 
-        private void ToggleButton_Checked(object sender, RoutedEventArgs e)
+        private void toggleButtonFolder_Checked(object sender, RoutedEventArgs e)
         {
             if (sideWindowTask != null)
             { sideWindowTask.FolderChange(true, this); }
         }
 
-        private void ToggleButton_Unchecked(object sender, RoutedEventArgs e)
+        private void toggleButtonFolder_Unchecked(object sender, RoutedEventArgs e)
         {
             if (sideWindowTask != null)
             { sideWindowTask.FolderChange(false, this); }
+        }
+
+        private void menuItemExport_Click(object sender, RoutedEventArgs e)
+        {
+            tasks.ExportFile("tasks.tlf");
         }
     }
 }

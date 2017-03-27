@@ -270,8 +270,7 @@ namespace SplitTask.Common
 
         private void Handshake()
         {
-            SendUnencryptedData("Ey waddup?");
-            byte[] blob = RecieveUnencryptedData();
+            byte[] blob = File.ReadAllBytes("public_server_credentials.blob");
 
             RSACryptoServiceProvider RSA = new RSACryptoServiceProvider();
             RSA.ImportCspBlob(blob);
@@ -281,19 +280,28 @@ namespace SplitTask.Common
             RIJ.GenerateIV();
             decryptor = RIJ.CreateDecryptor(RIJ.Key,RIJ.IV);
             encryptor = RIJ.CreateEncryptor(RIJ.Key, RIJ.IV);
-            streamKeys = RIJ.Key.Concat(RIJ.IV).ToArray();
+
+            byte[] username = Encoding.UTF8.GetBytes("anton");
+            byte[] password = Encoding.UTF8.GetBytes("TCEMvdMIGP8i0grlgL3ZlB4bc22K0bmc");
+
+            streamKeys = RIJ.Key.Concat(RIJ.IV).Concat(password).Concat(username).ToArray();
 
             SendUnencryptedData(RSA.Encrypt(streamKeys, false));
 
             byte[] message = Decrypt(RecieveUnencryptedData());
 
             string text = Encoding.UTF8.GetString(message);
+            if (text == "ey waddup?")
+            {
+                SendData("L0RuPtEwlxokJfyBcwPiRAOiPJL73MBF6a1OpXPNHp3YH");
 
-            tasks.ImportText(text);
-            AddEventsToTasks(tasks.tasks);
-            OnRecievedTasks();
-            handShaken = true;
-            MainLoop();
+                text = RecieveDataString();
+                tasks.ImportText(text);
+                AddEventsToTasks(tasks.tasks);
+                OnRecievedTasks();
+                handShaken = true;
+                MainLoop();
+            }
         }
 
         private byte[] Decrypt(byte[] data)

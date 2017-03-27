@@ -10,6 +10,7 @@ using SplitTask;
 using System.Threading;
 using System.Security.Cryptography;
 using SplitTask.Common;
+using Newtonsoft.Json.Linq;
 
 namespace SplitTask.WebHost
 {
@@ -17,24 +18,32 @@ namespace SplitTask.WebHost
     {
         static void Main(string[] args)
         {
-            TaskCollection tasks = new TaskCollection();
             RSACryptoServiceProvider RSA = new RSACryptoServiceProvider();
 
-            string path = "server_credentials.blob";
-            if (File.Exists(path))
+            string private_cred_path = "private_server_credentials.blob";
+            string public_cred_path = "public_server_credentials.blob";
+
+            if (File.Exists(private_cred_path))
             {
-                byte[] blob = File.ReadAllBytes(path);
+                byte[] blob = File.ReadAllBytes(private_cred_path);
                 RSA.ImportCspBlob(blob);
+                Console.WriteLine("Imported server credentials from "+private_cred_path);
             }
             else
             {
+                Console.WriteLine("Could not find server credentials!");
                 byte[] blob = RSA.ExportCspBlob(true);
-                File.WriteAllBytes(path,blob);
+                File.WriteAllBytes(private_cred_path,blob);
+                blob = RSA.ExportCspBlob(false);
+                File.WriteAllBytes(public_cred_path, blob);
+                Console.WriteLine("Creating new server credentials at "+private_cred_path+"\nDo not lose these or all clients will have to update their connection");
             }
+           
 
             WebServer server = new WebServer(RSA);
             server.Start(5171);
-
         }
+
+
     }
 }

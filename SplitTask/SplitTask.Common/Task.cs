@@ -64,7 +64,7 @@ namespace SplitTask.Common
         public static Task Parse(JObject obj)
         {
             string name = TryReadValue("name", obj, "Unknown Task Name");
-            string id = TryReadValue("ID", obj, "ID-Is-Lost-You-Should-Panic-Right-Now-Friend");
+            string id = TryReadValue("ID", obj, "TID-Is-Lost-You-Should-Panic-Right-Now-Friend");
             Task task = new Task(name, id);
             JArray array = TryReadValue("subtasks",obj,new JArray());
             foreach (JObject j in array)
@@ -87,11 +87,11 @@ namespace SplitTask.Common
             return (T)Convert.ChangeType(token, typeof(T));
         }
 
-        public void chooseID(Random randomGenerator)
+        public void GenerateID(Random randomGenerator)
         {
             byte[] randomValue = new byte[33];
             randomGenerator.NextBytes(randomValue);
-            id = Convert.ToBase64String(randomValue).Replace("/", "-");
+            id = "T"+Convert.ToBase64String(randomValue).Replace("/", "-");
         }
         
         public void Rename(string newName, object sender)
