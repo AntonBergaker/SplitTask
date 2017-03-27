@@ -58,6 +58,15 @@ namespace SplitTask.Common
             task.TaskRenamed += Task_TaskRenamed;
             task.TaskFolderChanged += Task_TaskFolderChanged;
             task.TaskDescriptionChanged += Task_TaskDescriptionChanged;
+            task.TaskTimeDueChanged += Task_TaskTimeDueChanged;
+        }
+
+        private void Task_TaskTimeDueChanged(object sender, TaskDateChangedEventArgs e)
+        {
+            if (e.originalSender != this)
+            {
+                TaskDueDateChange(e.task.ID, e.newDate);
+            }
         }
 
         private void Task_TaskFolderChanged(object sender, TaskFolderChangedEventArgs e)
@@ -188,6 +197,18 @@ namespace SplitTask.Common
             }
         }
 
+        public void TaskDueDateChange(string taskID, DateTime? newTime)
+        {
+            if (handShaken)
+            {
+                JObject obj = new JObject();
+                obj.Add("type", "DueDateChange");
+                obj.Add("ID", taskID);
+                obj.Add("date", newTime);
+                SendData(obj.ToString());
+            }
+        }
+
         private void MainLoop()
         {
             while (running)
@@ -260,6 +281,12 @@ namespace SplitTask.Common
                     bool isFolder = (bool)obj["isFolder"];
                     tasks.FolderChange(taskID, isFolder, this);
                     Console.WriteLine("Set the task " + taskID + "to a {0}", isFolder ? " folder" : "task");
+                    break;
+                case "DueDateChange":
+                    taskID = (string)obj["ID"];
+                    DateTime? newDate = (DateTime?)obj["date"];
+                    tasks.DateDueChange(taskID, newDate, this);
+                    Console.WriteLine("The task "+taskID+" is now due "+newDate);
                     break;
             }
         }

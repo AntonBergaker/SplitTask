@@ -124,6 +124,13 @@ namespace SplitTask.WebHost
                     Console.WriteLine("Set the task " + taskID + " to a {0}", isFolder ? "folder" : "task");
                     ForwardToClients(obj, senderID);
                     break;
+                case "DueDateChange":
+                    taskID = (string)obj["ID"];
+                    DateTime? newDate = (DateTime?)obj["date"];
+                    tasks.DateDueChange(taskID, newDate, this);
+                    Console.WriteLine("The task " + taskID + " is now due " + newDate);
+                    ForwardToClients(obj, senderID);
+                    break;
             }
         }
     }

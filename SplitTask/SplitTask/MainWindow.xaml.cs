@@ -28,6 +28,7 @@ namespace TaskPlanner
 
         EventHandler<TaskRenamedEventArgs> eventHandlerRenamed;
         EventHandler<TaskDescriptionChangedEventArgs> eventHandlerDescriptionChanged;
+        EventHandler<TaskDateChangedEventArgs> eventHandlerDateDueChanged;
 
         public MainWindow()
         {
@@ -43,6 +44,8 @@ namespace TaskPlanner
                  new Action(() => { Task_TaskRenamed(sender, args); }));
             eventHandlerDescriptionChanged = (sender, args) => dispatcher.BeginInvoke(
                  new Action(() => { Task_TaskDescriptionChanged(sender, args); }));
+            eventHandlerDateDueChanged = (sender, args) => dispatcher.BeginInvoke(
+                new Action(() => { Task_TaskDateDueChanged(sender, args); }));
 
             sideWindowControls = new Control[] { textBoxTaskName, textBoxTaskDescription, datePickerDue, toggleButtonFolder};
             SideWindowEnable(false);
@@ -74,7 +77,7 @@ namespace TaskPlanner
         private void SplitterNameDragDelta(object sender, System.Windows.Controls.Primitives.DragDeltaEventArgs e)
         {
             double width = mainGrid.ColumnDefinitions[0].ActualWidth + e.HorizontalChange;
-            if (width > 10)
+            if (width > 175)
             {
                 mainGrid.ColumnDefinitions[0].Width = new GridLength(mainGrid.ColumnDefinitions[0].ActualWidth + e.HorizontalChange);
             }
@@ -168,6 +171,7 @@ namespace TaskPlanner
                 var dispatcher = System.Windows.Application.Current.MainWindow.Dispatcher;
                 sideWindowTask.TaskRenamed -= eventHandlerRenamed;
                 sideWindowTask.TaskDescriptionChanged -= eventHandlerDescriptionChanged;
+                sideWindowTask.TaskTimeDueChanged -= eventHandlerDateDueChanged;
             }
         }
 
@@ -175,6 +179,7 @@ namespace TaskPlanner
         {
             task.TaskRenamed += eventHandlerRenamed;
             task.TaskDescriptionChanged += eventHandlerDescriptionChanged;
+            task.TaskTimeDueChanged += eventHandlerDateDueChanged;
 
             SideWindowRemoveEvents();
             sideWindowTask = task;
@@ -196,6 +201,13 @@ namespace TaskPlanner
             if (sender != this)
             {
                 textBoxTaskDescription.Text = e.newDescription;
+            }
+        }
+        private void Task_TaskDateDueChanged(object sender, TaskDateChangedEventArgs e)
+        {
+            if (sender != this)
+            {
+                datePickerDue.SelectedDate = e.newDate;
             }
         }
 
@@ -266,6 +278,12 @@ namespace TaskPlanner
         private void menuItemExport_Click(object sender, RoutedEventArgs e)
         {
             tasks.ExportFile("tasks.tlf");
+        }
+
+        private void datePickerDue_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sideWindowTask != null)
+            { sideWindowTask.DateDueChange(datePickerDue.SelectedDate, this); }
         }
     }
 }

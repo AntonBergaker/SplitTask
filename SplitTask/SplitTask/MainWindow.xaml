@@ -19,25 +19,19 @@
             <Expander x:Name="expander" Header="File" HorizontalAlignment="Left" Margin="0,-3,0,0" VerticalAlignment="Top" Background="{x:Null}" Panel.ZIndex="5" Foreground="White">
                 <Grid Background="#FFE5E5E5"/>
             </Expander>
-
             <Rectangle Fill="#FF4CAF50" Stroke="Black" StrokeThickness="0" VerticalAlignment="Top" Height="90" Panel.ZIndex="3">
                 <Rectangle.Effect>
-                    <DropShadowEffect BlurRadius="20" Direction="270" Opacity="0.1"/>
-                </Rectangle.Effect>
-            </Rectangle>
-            <Rectangle Fill="#FF0C8833" Stroke="Black" StrokeThickness="0" VerticalAlignment="Top" Height="45" Panel.ZIndex="3" Margin="0,45,0,0">
-                <Rectangle.Effect>
-                    <DropShadowEffect BlurRadius="20" Direction="270" Opacity="0.1"/>
+                    <DropShadowEffect BlurRadius="31" Direction="270" Opacity="0.2"/>
                 </Rectangle.Effect>
             </Rectangle>
             <StackPanel x:Name="menuFile" HorizontalAlignment="Left" Height="124" VerticalAlignment="Top" Width="110" RenderTransformOrigin="0.899,0.533" Panel.ZIndex="10" Background="White">
                 <Button x:Name="menuItemOpen" Style="{DynamicResource MaterialDesignFlatButton}" Margin="0" Click="MenuItemOpen_Click" Panel.ZIndex="11" Content="Open" Foreground="#BB000000"/>
-                <Button x:Name="menuItemExport" Style="{DynamicResource MaterialDesignFlatButton}" Margin="0" Panel.ZIndex="11" Content="Exportn" Foreground="#BB000000" Click="menuItemExport_Click"/>
+                <Button x:Name="menuItemExport" Style="{DynamicResource MaterialDesignFlatButton}" Margin="0" Panel.ZIndex="11" Content="Export" Foreground="#BB000000" Click="menuItemExport_Click"/>
             </StackPanel>
         </Grid>
         <Grid x:Name="mainGrid" Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="320" MinWidth="100"/>
+                <ColumnDefinition Width="320" MinWidth="175"/>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
@@ -53,7 +47,7 @@
                         <TextBox x:Name="textBoxTaskName" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Task Name" Height="auto" Margin="40,19,40,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="17" ToolTip="Task Name" TextAlignment="Center" LostFocus="textBoxTaskName_LostFocus" KeyDown="textBoxTaskName_KeyDown"/>
                         <Separator Margin="0,-1,0,0" VerticalAlignment="Top"/>
                         <TextBox x:Name="textBoxTaskDescription" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Notes" Height="auto" Margin="40,31,40,0" TextWrapping="Wrap" VerticalAlignment="Top" ToolTip="Task Description" TextAlignment="Left" KeyDown="textBoxTaskDescription_KeyDown" LostFocus="textBoxTaskDescription_LostFocus"/>
-                        <DatePicker x:Name="datePickerDue" materialDesign:HintAssist.Hint="Due Date" Style="{StaticResource MaterialDesignFloatingHintDatePicker}" VerticalAlignment="Top" Height="30" SelectedDateFormat="Long" Margin="40,40,40,0" FirstDayOfWeek="Monday"/>
+                        <DatePicker x:Name="datePickerDue" materialDesign:HintAssist.Hint="Due Date" Style="{StaticResource MaterialDesignFloatingHintDatePicker}" VerticalAlignment="Top" Height="30" SelectedDateFormat="Long" Margin="40,40,40,0" FirstDayOfWeek="Monday" SelectedDateChanged="datePickerDue_SelectedDateChanged"/>
                         <TextBlock Text="Folder" Margin="38,44,0,0" HorizontalAlignment="Left"/>
                         <ToggleButton x:Name="toggleButtonFolder" Margin="94,-17,0,0" HorizontalAlignment="Left" Checked="toggleButtonFolder_Checked" Unchecked="toggleButtonFolder_Unchecked"/>
                     </StackPanel>

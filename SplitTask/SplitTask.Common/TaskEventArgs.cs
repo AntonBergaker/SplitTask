@@ -33,5 +33,9 @@ namespace SplitTask.Common
     {
         public bool isFolder;
     }
-
+    public class TaskDateChangedEventArgs : TaskEventArgs
+    {
+        public DateTime? newDate;
+        public DateTime? oldDate;
+    }
 }

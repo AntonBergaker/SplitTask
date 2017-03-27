@@ -133,6 +133,16 @@ namespace SplitTask.Common
             }
         }
 
+        public void DateDueChange(DateTime? timeDue, object sender)
+        {
+            if (this.timeDue != timeDue)
+            {
+                DateTime? oldTime = this.timeDue;
+                this.timeDue = timeDue;
+                OnTimeDueChanged(timeDue,oldTime,sender);
+            }
+        }
+
 
         public event EventHandler<TaskRenamedEventArgs> TaskRenamed;
         protected virtual void OnRenamed(string newName, string oldName, object sender)
@@ -184,6 +194,20 @@ namespace SplitTask.Common
                 e.task = this;
                 e.originalSender = sender;
                 TaskFolderChanged(this, e);
+            }
+        }
+
+        public event EventHandler<TaskDateChangedEventArgs> TaskTimeDueChanged;
+        protected virtual void OnTimeDueChanged(DateTime? newDate, DateTime? oldDate, object sender)
+        {
+            if (TaskTimeDueChanged != null)
+            {
+                TaskDateChangedEventArgs e = new TaskDateChangedEventArgs();
+                e.newDate = newDate;
+                e.oldDate = oldDate;
+                e.task = this;
+                e.originalSender = sender;
+                TaskTimeDueChanged(this, e);
             }
         }
 

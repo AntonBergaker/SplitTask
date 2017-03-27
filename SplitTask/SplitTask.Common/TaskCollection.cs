@@ -100,6 +100,13 @@ namespace SplitTask.Common
                 IDDictionary[ID].FolderChange(isFolder,sender);
             }
         }
+        public void DateDueChange(string ID, DateTime? newDate, object sender)
+        {
+            if (IDDictionary.ContainsKey(ID))
+            {
+                IDDictionary[ID].DateDueChange(newDate, sender);
+            }
+        }
 
         public void Rename(string ID, string name, object sender)
         {
