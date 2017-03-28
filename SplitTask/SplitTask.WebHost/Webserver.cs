@@ -11,17 +11,19 @@ using System.Threading;
 using SplitTask.Common;
 using System.Security.Cryptography;
 using Newtonsoft.Json.Linq;
+using MySql.Data.MySqlClient;
 
 namespace SplitTask.WebHost
 {
     class WebServer
     {
-        List<ClientHandler> clients = new List<ClientHandler>();
-        TcpListener serverSocket;
-        Dictionary<string, User> usersByKey;
-        Dictionary<string, User> usersByName;
-        Dictionary<string, TaskServer> taskServers;
-        RSACryptoServiceProvider RSA;
+        private List<ClientHandler> clients = new List<ClientHandler>();
+        private TcpListener serverSocket;
+        private Dictionary<string, User> usersByKey;
+        private Dictionary<string, User> usersByName;
+        private Dictionary<string, TaskServer> taskServers;
+        private RSACryptoServiceProvider RSA;
+        private MySqlConnection SQLconnection;
 
         public WebServer(RSACryptoServiceProvider RSA)
         {
@@ -29,7 +31,26 @@ namespace SplitTask.WebHost
             usersByKey = new Dictionary<string, User>();
             usersByName = new Dictionary<string, User>();
             taskServers = new Dictionary<string, TaskServer>();
+
+            StartSQL();
             ImportUsers();
+            
+        }
+
+        private void StartSQL()
+        {
+            string connectionString = "";
+            SQLconnection = new MySqlConnection(connectionString);
+            SQLconnection.Open();
+            string sql = "SELECT * FROM users";
+            MySqlCommand command = new MySqlCommand(sql, SQLconnection);
+            MySqlDataReader reader = command.ExecuteReader();
+            using (reader)
+            {
+                reader.Read();
+                reader.Read();
+                Console.WriteLine(reader.GetString(0));
+            }
         }
 
         private void ImportUsers()
