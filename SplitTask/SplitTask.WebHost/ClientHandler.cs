@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SplitTask.Common;
 using System.Security.Cryptography;
+using MySql.Data.MySqlClient;
 
 namespace SplitTask.WebHost
 {
@@ -22,17 +23,15 @@ namespace SplitTask.WebHost
         public int ID;
         private readonly byte[] terminationBytes = new byte[] { 0x15, 0xba, 0xfc, 0x61, 0xf1, 0x03 };
         RSACryptoServiceProvider RSA;
-        Dictionary<string, User> usersByKey;
-        Dictionary<string, User> usersByName;
+        MySqlConnection SQL;
         ICryptoTransform encryptor;
         ICryptoTransform decryptor;
 
-        public ClientHandler(int ID, RSACryptoServiceProvider RSA, Dictionary<string,User> usersByKey, Dictionary<string,User> usersByName)
+        public ClientHandler(int ID, RSACryptoServiceProvider RSA, MySqlConnection SQLConnection)
         {
             this.ID = ID;
             this.RSA = RSA;
-            this.usersByKey = usersByKey;
-            this.usersByName = usersByName;
+            this.SQL = SQLConnection;
         }
 
         public void StartClient(TcpClient client)
@@ -79,26 +78,59 @@ namespace SplitTask.WebHost
 
         private void SendHandShake()
         {
-
-            byte[] recievedData = RSA.Decrypt(RecieveUnencryptedData(),false);
-            byte[] key = recievedData.Take(32).ToArray();
-            byte[] IV = recievedData.Skip(32).Take(16).ToArray();
-
-            string password = Encoding.UTF8.GetString(recievedData.Skip(48).Take(32).ToArray());
-            string username = Encoding.UTF8.GetString(recievedData.Skip(80).ToArray());
-
-            if (usersByName.ContainsKey(username))
+            byte[] recievedData = RecieveUnencryptedData();
+            if (recievedData.Length > 129)
             {
-                if (usersByName[username].password == password)
-                {
-                    user = usersByName[username];
-                    Console.WriteLine("Logged in as "+username);
-                    RijndaelManaged RIJ = new RijndaelManaged();
-                    RIJ.IV = IV;
-                    RIJ.Key = key;
+                //First 128 bytes get decoded with RSA. The following information gets decoded with RIJ.
+                byte[] sensitiveData = RSA.Decrypt(recievedData.Take(128).ToArray(),false);
+                byte[] key = sensitiveData.Take(32).ToArray();
+                byte[] IV = sensitiveData.Skip(32).Take(16).ToArray();
 
-                    decryptor = RIJ.CreateDecryptor(RIJ.Key, RIJ.IV);
-                    encryptor =  RIJ.CreateEncryptor(RIJ.Key,RIJ.IV);
+                byte[] password = sensitiveData.Skip(48).Take(64).ToArray();
+
+                RijndaelManaged RIJ = new RijndaelManaged();
+                RIJ.IV = IV;
+                RIJ.Key = key;
+
+                decryptor = RIJ.CreateDecryptor(RIJ.Key, RIJ.IV);
+                encryptor = RIJ.CreateEncryptor(RIJ.Key, RIJ.IV);
+
+                string username = Encoding.UTF8.GetString(Decrypt(recievedData.Skip(128).ToArray()));
+
+                bool correctPassword = false;
+                string userID = "";
+                string email = "";
+                string displayname = "";
+                MySqlCommand command = new MySqlCommand("SELECT PasswordHash,userID,DisplayName,Email from users where DisplayName=@param_val_1", SQL);
+                command.Parameters.AddWithValue("@param_val_1", username);
+                using (MySqlDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        byte[] storedPassword = new byte[64];
+                        reader.GetBytes(0, 0, storedPassword, 0, 64);
+                        if (password.SequenceEqual(storedPassword))
+                        {
+                            correctPassword = true;
+                            userID = reader.GetInt32(1).ToString();
+                            displayname = reader.GetString(2);
+                            email = reader.GetString(3);
+                        }
+                        else
+                        { Console.WriteLine("A user calling himself " + username + " tried to log in, but the password was incorrect"); }
+                    }
+                    else
+                    { Console.WriteLine("A user calling himself "+username+" tried to log in, but no such user existed in the database."); }
+                }
+
+                if (correctPassword)
+                {
+                    user = new User();
+                    user.displayname = displayname;
+                    user.username = username;
+                    user.email = email;
+                    user.id = userID;
+                    Console.WriteLine("Logged in " + username);
 
                     SendData("ey waddup?");
 
@@ -108,9 +140,9 @@ namespace SplitTask.WebHost
                     MainLoop();
                 }
             }
-
-
         }
+
+
 
         private byte[] Decrypt(byte[] data)
         {

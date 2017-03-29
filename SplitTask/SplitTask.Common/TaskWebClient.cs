@@ -21,7 +21,6 @@ namespace SplitTask.Common
         private NetworkStream stream;
         private bool handShaken;
         private bool running;
-        private byte[] streamKeys;
         private ICryptoTransform decryptor;
         private ICryptoTransform encryptor;
         private readonly byte[] terminationBytes = new byte[] { 0x15, 0xba, 0xfc, 0x61, 0xf1, 0x03 };
@@ -309,11 +308,13 @@ namespace SplitTask.Common
             encryptor = RIJ.CreateEncryptor(RIJ.Key, RIJ.IV);
 
             byte[] username = Encoding.UTF8.GetBytes("anton");
-            byte[] password = Encoding.UTF8.GetBytes("TCEMvdMIGP8i0grlgL3ZlB4bc22K0bmc");
+            byte[] password = Encoding.UTF8.GetBytes("TCEMvdMIGP8i0grlgL3ZlB4bc22K0bmcTCEMvdMIGP8i0grlgL3ZlB4bc22K0bmc");
+            byte[] blankspace = new byte[16]; //Last 16 bytes to fill out the first 128 bytes of RIJ encoding.
 
-            streamKeys = RIJ.Key.Concat(RIJ.IV).Concat(password).Concat(username).ToArray();
+            byte[] encryptedData = RSA.Encrypt(RIJ.Key.Concat(RIJ.IV).Concat(password).ToArray(),false);
 
-            SendUnencryptedData(RSA.Encrypt(streamKeys, false));
+            
+            SendUnencryptedData(encryptedData.Concat(Encrypt(username)).ToArray());
 
             byte[] message = Decrypt(RecieveUnencryptedData());
 

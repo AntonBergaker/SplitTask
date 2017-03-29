@@ -5,10 +5,10 @@
 	DisplayName nvarchar(255),
 	Email nvarchar(255) NOT NULL,
 
-	PRIMARY KEY(UserID),
-)
+	PRIMARY KEY(UserID)
+);
 
 CREATE TABLE UserLists (
 	UserID int NOT NULL,
-	ListID int NOT NULL,
-)
+	ListID int NOT NULL
+);

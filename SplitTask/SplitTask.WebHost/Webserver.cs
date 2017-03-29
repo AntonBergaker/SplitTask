@@ -19,57 +19,45 @@ namespace SplitTask.WebHost
     {
         private List<ClientHandler> clients = new List<ClientHandler>();
         private TcpListener serverSocket;
-        private Dictionary<string, User> usersByKey;
-        private Dictionary<string, User> usersByName;
         private Dictionary<string, TaskServer> taskServers;
         private RSACryptoServiceProvider RSA;
         private MySqlConnection SQLconnection;
+        private ServerProperties serverProperties;
 
         public WebServer(RSACryptoServiceProvider RSA)
         {
             this.RSA = RSA;
-            usersByKey = new Dictionary<string, User>();
-            usersByName = new Dictionary<string, User>();
             taskServers = new Dictionary<string, TaskServer>();
 
+            serverProperties = new ServerProperties("settings.ini");
+
             StartSQL();
-            ImportUsers();
             
         }
 
         private void StartSQL()
         {
-            string connectionString = "";
+            string connectionString = "server="+serverProperties.sqlAddress+";uid="+serverProperties.sqlUser+";pwd="+serverProperties.sqlPassword+";database="+serverProperties.sqlDatabase+";";
             SQLconnection = new MySqlConnection(connectionString);
             SQLconnection.Open();
-            string sql = "SELECT * FROM users";
+            Console.WriteLine("Connected to mySQL");
+            string sql = "SHOW TABLES LIKE 'users'";
             MySqlCommand command = new MySqlCommand(sql, SQLconnection);
-            MySqlDataReader reader = command.ExecuteReader();
-            using (reader)
-            {
-                reader.Read();
-                reader.Read();
-                Console.WriteLine(reader.GetString(0));
-            }
-        }
+            bool tablesExist = true;
 
-        private void ImportUsers()
-        {
-            string path = "users.json";
-            if (File.Exists(path))
+            using (MySqlDataReader reader = command.ExecuteReader())
             {
-                JArray array = JArray.Parse(File.ReadAllText(path));
-                foreach (JToken t in array)
+                if (reader.Read() == false)
                 {
-                    JObject obj = (JObject)t;
-                    User user = User.ImportFromJson(obj);
-                    usersByKey.Add(user.id,user);
-                    usersByName.Add(user.username, user);
+                    tablesExist = false;
                 }
-                Console.WriteLine("Imported users from "+path);
             }
-            else
-            { Console.WriteLine("No users found"); }
+            if (!tablesExist)
+            {
+                command = new MySqlCommand(File.ReadAllText("SQLscripts/create_tables.sql"),SQLconnection);
+                command.ExecuteNonQuery();
+                Console.WriteLine("Created tables");
+            }
         }
 
         public void Start(int port)
@@ -96,7 +84,7 @@ namespace SplitTask.WebHost
             {
                 clientSocket = serverSocket.AcceptTcpClient();
                 Console.WriteLine("Client Connected");
-                ClientHandler client = new ClientHandler(clientCount, RSA, usersByKey, usersByName);
+                ClientHandler client = new ClientHandler(clientCount, RSA, SQLconnection);
                 clientCount++;
 
                 client.Authenticated += Client_Authenticated;
