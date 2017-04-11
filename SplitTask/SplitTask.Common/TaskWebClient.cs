@@ -24,6 +24,7 @@ namespace SplitTask.Common
         private ICryptoTransform decryptor;
         private ICryptoTransform encryptor;
         private readonly byte[] terminationBytes = new byte[] { 0x15, 0xba, 0xfc, 0x61, 0xf1, 0x03 };
+        private readonly byte[] connectionBytes  = new byte[] { 0x8a, 0xe1, 0x44, 0x72, 0xe1, 0xf3 };
 
         public TaskWebClient(TaskCollection tasks)
         {
@@ -308,13 +309,21 @@ namespace SplitTask.Common
             encryptor = RIJ.CreateEncryptor(RIJ.Key, RIJ.IV);
 
             byte[] username = Encoding.UTF8.GetBytes("anton");
-            byte[] password = Encoding.UTF8.GetBytes("TCEMvdMIGP8i0grlgL3ZlB4bc22K0bmcTCEMvdMIGP8i0grlgL3ZlB4bc22K0bmc");
-            byte[] blankspace = new byte[16]; //Last 16 bytes to fill out the first 128 bytes of RIJ encoding.
+            byte[] password = Encoding.UTF8.GetBytes("TCEMvdMIGP8i0grlgL3ZlB4bc22K0bmcTCEMvdMIGP8i0grlgL3ZlB4bc22K0bmcTCEMvdMIGP8i0grlgL3ZlB4bc22K0bmcTCEMvdMIGP8i0grlgL3ZlB4bc22K0bmc");
 
-            byte[] encryptedData = RSA.Encrypt(RIJ.Key.Concat(RIJ.IV).Concat(password).ToArray(),false);
+            //First 64 bytes of password that fit in the RSA
+            byte[] passwordPart1 = password.Take(64).ToArray();
+            //Last 64 bytes that are in RIJ
+            byte[] passwordPart2 = password.Skip(64).ToArray();
 
-            
-            SendUnencryptedData(encryptedData.Concat(Encrypt(username)).ToArray());
+            Console.WriteLine(RIJ.Key.Concat(RIJ.IV).Concat(passwordPart1).ToArray().Length);
+
+            byte[] RSAEncryptedData = RSA.Encrypt(RIJ.Key.Concat(RIJ.IV).Concat(passwordPart1).ToArray(),false);
+
+            byte[] RIJEncryptedData = Encrypt(passwordPart2.Concat(username).ToArray());
+
+            //Send connection header and the encrypted data
+            SendUnencryptedData(connectionBytes.Concat(RSAEncryptedData).Concat(RIJEncryptedData).ToArray());
 
             byte[] message = Decrypt(RecieveUnencryptedData());
 
@@ -410,16 +419,28 @@ namespace SplitTask.Common
             byte[] recievedBytes = new byte[1024];
             MemoryStream byteStream = new MemoryStream();
             int bytesRead = 0;
+            int timeoutTimer = 0;
 
             do
             {
-                bytesRead = stream.Read(recievedBytes, 0, recievedBytes.Length);
-
-                byteStream.Write(recievedBytes, 0, bytesRead);
-                if (byteStream.Length > 6)
+                if (stream.DataAvailable)
                 {
-                    byteStream.Position -= 6;
-                    byteStream.Read(finalBytes, 0, 6);
+                    timeoutTimer = 0;
+                    bytesRead = stream.Read(recievedBytes, 0, recievedBytes.Length);
+
+                    byteStream.Write(recievedBytes, 0, bytesRead);
+                    if (byteStream.Length > 6)
+                    {
+                        byteStream.Position -= 6;
+                        byteStream.Read(finalBytes, 0, 6);
+                    }
+                }
+                else
+                {
+                    timeoutTimer += 1;
+                    Thread.Sleep(1);
+                    if (timeoutTimer > 10000)
+                    { return new byte[0]; }
                 }
             }
             while (!Enumerable.SequenceEqual(finalBytes,terminationBytes));

@@ -32,7 +32,6 @@ namespace SplitTask.WebHost
             serverProperties = new ServerProperties("settings.ini");
 
             StartSQL();
-            
         }
 
         private void StartSQL()
@@ -58,6 +57,7 @@ namespace SplitTask.WebHost
                 command.ExecuteNonQuery();
                 Console.WriteLine("Created tables");
             }
+            SQLconnection.Close();
         }
 
         public void Start(int port)

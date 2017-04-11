@@ -22,6 +22,7 @@ namespace SplitTask.WebHost
         Thread thread;
         public int ID;
         private readonly byte[] terminationBytes = new byte[] { 0x15, 0xba, 0xfc, 0x61, 0xf1, 0x03 };
+        private readonly byte[] connectionBytes = new byte[] { 0x8a, 0xe1, 0x44, 0x72, 0xe1, 0xf3 };
         RSACryptoServiceProvider RSA;
         MySqlConnection SQL;
         ICryptoTransform encryptor;
@@ -38,7 +39,7 @@ namespace SplitTask.WebHost
         {
             this.client = client;
             stream = client.GetStream();
-            thread = new Thread(SendHandShake);
+            thread = new Thread(RecieveHandShake);
             thread.Start();
         }
         private void MainLoop()
@@ -76,9 +77,25 @@ namespace SplitTask.WebHost
             OnRecievedJson(obj);
         }
 
-        private void SendHandShake()
+        private void RecieveHandShake()
         {
+            //Find out what the client wants to do depending on the first 6 bytes
             byte[] recievedData = RecieveUnencryptedData();
+            if (recievedData.Length > 6)
+            {
+                byte[] header = recievedData.Take(6).ToArray();
+                byte[] payload = recievedData.Skip(6).ToArray();
+
+                if (header.SequenceEqual(connectionBytes))
+                {
+                    ConnectClient(payload);
+                }
+            }
+        }
+
+
+        private void ConnectClient(byte[] recievedData)
+        {
             if (recievedData.Length > 129)
             {
                 //First 128 bytes get decoded with RSA. The following information gets decoded with RIJ.
@@ -86,7 +103,8 @@ namespace SplitTask.WebHost
                 byte[] key = sensitiveData.Take(32).ToArray();
                 byte[] IV = sensitiveData.Skip(32).Take(16).ToArray();
 
-                byte[] password = sensitiveData.Skip(48).Take(64).ToArray();
+                //First 64 bytes of password
+                byte[] passwordPart1 = sensitiveData.Skip(48).Take(64).ToArray();
 
                 RijndaelManaged RIJ = new RijndaelManaged();
                 RIJ.IV = IV;
@@ -95,12 +113,24 @@ namespace SplitTask.WebHost
                 decryptor = RIJ.CreateDecryptor(RIJ.Key, RIJ.IV);
                 encryptor = RIJ.CreateEncryptor(RIJ.Key, RIJ.IV);
 
-                string username = Encoding.UTF8.GetString(Decrypt(recievedData.Skip(128).ToArray()));
+                Console.WriteLine("Recieved Password");
+
+                //Last 64 bytes of password
+                byte[] passwordAndUsername = Decrypt(recievedData.Skip(128).ToArray());
+
+                byte[] passwordPart2 = passwordAndUsername.Take(64).ToArray();
+
+                byte[] password = passwordPart1.Concat(passwordPart2).ToArray();
+
+                //The username is at the end of the bytestream
+                string username = Encoding.UTF8.GetString(passwordAndUsername.Skip(64).ToArray());
 
                 bool correctPassword = false;
                 string userID = "";
                 string email = "";
                 string displayname = "";
+
+                SQL.Open();
                 MySqlCommand command = new MySqlCommand("SELECT PasswordHash,userID,DisplayName,Email from users where DisplayName=@param_val_1", SQL);
                 command.Parameters.AddWithValue("@param_val_1", username);
                 using (MySqlDataReader reader = command.ExecuteReader())
@@ -125,11 +155,8 @@ namespace SplitTask.WebHost
 
                 if (correctPassword)
                 {
-                    user = new User();
-                    user.displayname = displayname;
-                    user.username = username;
-                    user.email = email;
-                    user.id = userID;
+                    user = new User(username,userID,displayname,email);
+
                     Console.WriteLine("Logged in " + username);
 
                     SendData("ey waddup?");
@@ -139,6 +166,8 @@ namespace SplitTask.WebHost
                     OnAuthenticated(servers);
                     MainLoop();
                 }
+
+                SQL.Close();
             }
         }
 
@@ -227,6 +256,7 @@ namespace SplitTask.WebHost
             {
                 if (stream.DataAvailable)
                 {
+                    timeoutTimer -= 2;
                     bytesRead = stream.Read(recievedBytes, 0, recievedBytes.Length);
 
                     byteStream.Write(recievedBytes, 0, bytesRead);

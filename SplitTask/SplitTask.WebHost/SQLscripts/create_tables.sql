@@ -1,7 +1,7 @@
 ﻿CREATE TABLE Users (
 	UserID int NOT NULL,
 	Username nvarchar(255) NOT NULL,
-	PasswordHash BINARY(64) NOT NULL,
+	PasswordHash BINARY(128) NOT NULL,
 	DisplayName nvarchar(255),
 	Email nvarchar(255) NOT NULL,
 
@@ -10,5 +10,7 @@
 
 CREATE TABLE UserLists (
 	UserID int NOT NULL,
-	ListID int NOT NULL
+	ListID int NOT NULL,
+
+	FOREIGN KEY(UserID) REFERENCES Users(UserID)
 );

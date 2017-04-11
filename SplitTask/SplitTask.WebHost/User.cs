@@ -14,11 +14,27 @@ namespace SplitTask.WebHost
         public string displayname;
         public string[] connectedToLists;
         public string email;
-        public string password;
 
         public User()
         {
 
+        }
+
+        public User(string username, string id, string displayname, string email)
+        {
+            this.id = id;
+            this.displayname = displayname;
+            this.username = username;
+            this.email = email;
+        }
+
+        public User(JObject obj)
+        {
+            username = (string)obj["username"];
+            id = (string)obj["id"];
+            displayname = (string)obj["displayname"];
+            connectedToLists = obj["lists"].ToObject<string[]>();
+            email = (string)obj["email"];
         }
         public void GenerateID(Random randomGenerator)
         {
@@ -27,17 +43,6 @@ namespace SplitTask.WebHost
             id = "U" + Convert.ToBase64String(randomValue).Replace("/", "-");
         }
 
-        public static User ImportFromJson(JObject obj)
-        {
-            User user = new User();
-            user.username = (string)obj["username"];
-            user.id = (string)obj["id"];
-            user.displayname = (string)obj["displayname"];
-            user.connectedToLists = obj["lists"].ToObject<string[]>();
-            user.email = (string)obj["email"];
-            user.password = (string)obj["password"];
 
-            return user;
-        }
     }
 }
