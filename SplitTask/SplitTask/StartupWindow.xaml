@@ -1,0 +1,27 @@
+﻿<Window x:Class="SplitTask.StartupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SplitTask"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal" 
+        TextOptions.TextRenderingMode="Auto"        
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{DynamicResource MaterialDesignFont}"
+        mc:Ignorable="d"
+        Title="Welcome!" Height="340" Width="462" ResizeMode="CanMinimize">
+    <Grid>
+        <Grid VerticalAlignment="Bottom" Margin="20">
+            <Button x:Name="buttonServer" Content="Official Server" Width="125" HorizontalAlignment="Left"/>
+            <Button x:Name="buttonCustomServer" Content="Custom Server" Width="125" Click="buttonCustomServer_Click"/>
+            <Button x:Name="buttonLocal" Content="Locally"  Width="125" HorizontalAlignment="Right"/>
+        </Grid>
+
+        <TextBlock x:Name="textBlock" Margin="15,20,15,75" TextWrapping="Wrap">Hello and thanks for using SplitTask. Where do you want to start saving your tasklists?<LineBreak/><LineBreak/><Bold>Offical Server</Bold>: Log in to store your tasklists on the offical SplitTask server, enabling easy collaboration and access. <LineBreak/><LineBreak/><Bold>Custom Server</Bold>: Connect to a third party server that hosts your tasklists.<LineBreak/><LineBreak/><Bold>Locally</Bold>: Store your tasklists on this computer.<LineBreak/><LineBreak/>All choices will store a local copy of your tasklists for offline editing.<LineBreak/><LineBreak/>You can change this for individual lists later.</TextBlock>
+
+    </Grid>
+</Window>

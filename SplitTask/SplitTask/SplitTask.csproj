@@ -71,6 +71,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ServersWindow.xaml.cs">
+      <DependentUpon>ServersWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="StartupWindow.xaml.cs">
+      <DependentUpon>StartupWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TaskTree.xaml.cs">
       <DependentUpon>TaskTree.xaml</DependentUpon>
     </Compile>
@@ -89,6 +95,14 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="ServersWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="StartupWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="TaskTree.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

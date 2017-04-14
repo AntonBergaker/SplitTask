@@ -23,6 +23,8 @@ namespace SplitTask.WebHost
         public int ID;
         private readonly byte[] terminationBytes = new byte[] { 0x15, 0xba, 0xfc, 0x61, 0xf1, 0x03 };
         private readonly byte[] connectionBytes = new byte[] { 0x8a, 0xe1, 0x44, 0x72, 0xe1, 0xf3 };
+        private readonly byte[] setupBytes = new byte[] { 0x12, 0x43, 0x1a, 0x71, 0x30, 0x10 };
+        private readonly byte[] hasKeyBytes = new byte[] { 0x74, 0xf0, 0x4d, 0x5e, 0x7d, 0xce };
         RSACryptoServiceProvider RSA;
         MySqlConnection SQL;
         ICryptoTransform encryptor;
@@ -85,10 +87,39 @@ namespace SplitTask.WebHost
             {
                 byte[] header = recievedData.Take(6).ToArray();
                 byte[] payload = recievedData.Skip(6).ToArray();
-
+                //Very random headers to avoid making connections with random data
                 if (header.SequenceEqual(connectionBytes))
                 {
                     ConnectClient(payload);
+                }
+                else if (header.SequenceEqual(setupBytes))
+                {
+                    SetupClient(payload);
+                }
+                else
+                { Disconnect(); }
+            }
+        }
+
+        private void Disconnect()
+        {
+            client.Close();
+        }
+
+        private void SetupClient(byte[] recievedData)
+        {
+            if (recievedData.Length >= 128)
+            {
+                byte[] sensitiveData = RSA.Decrypt(recievedData.Take(128).ToArray(), false);
+                //If the client sent bytes that are properly decoded
+                if (sensitiveData.Take(6).ToArray().SequenceEqual(hasKeyBytes))
+                {
+                    byte[] key = sensitiveData.Skip(6).Take(32).ToArray();
+                    byte[] IV = sensitiveData.Skip(38).Take(16).ToArray();
+                }
+                else
+                {
+                    //TODO send back to client that their keys are incorrect
                 }
             }
         }

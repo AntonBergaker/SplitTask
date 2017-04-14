@@ -13,7 +13,8 @@
         TextOptions.TextFormattingMode="Ideal" 
         TextOptions.TextRenderingMode="Auto"        
         Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{DynamicResource MaterialDesignFont}" Closing="Window_Closing">
+        FontFamily="{DynamicResource MaterialDesignFont}"
+        Closing="Window_Closing">
     <Grid>
         <Grid Grid.Row="0" Margin="0" Panel.ZIndex="10">
             <Expander x:Name="expander" Header="File" HorizontalAlignment="Left" Margin="0,-3,0,0" VerticalAlignment="Top" Background="{x:Null}" Panel.ZIndex="5" Foreground="White">
@@ -25,7 +26,7 @@
                 </Rectangle.Effect>
             </Rectangle>
             <StackPanel x:Name="menuFile" HorizontalAlignment="Left" Height="124" VerticalAlignment="Top" Width="110" RenderTransformOrigin="0.899,0.533" Panel.ZIndex="10" Background="White">
-                <Button x:Name="menuItemOpen" Style="{DynamicResource MaterialDesignFlatButton}" Margin="0" Click="MenuItemOpen_Click" Panel.ZIndex="11" Content="Open" Foreground="#BB000000"/>
+                <Button x:Name="menuItemServers" Style="{DynamicResource MaterialDesignFlatButton}" Margin="0" Click="menuItemServers_Click" Panel.ZIndex="11" Content="Servers" Foreground="#BB000000"/>
                 <Button x:Name="menuItemExport" Style="{DynamicResource MaterialDesignFlatButton}" Margin="0" Panel.ZIndex="11" Content="Export" Foreground="#BB000000" Click="menuItemExport_Click"/>
             </StackPanel>
         </Grid>

@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using SplitTask.Common;
+using SplitTask;
 
 namespace TaskPlanner
 {
@@ -25,8 +26,9 @@ namespace TaskPlanner
         TaskWebClient webClient;
         Task sideWindowTask;
         Control[] sideWindowControls;
+        ServersWindow serversWindow;
 
-        EventHandler<TaskRenamedEventArgs> eventHandlerRenamed;
+        EventHandler <TaskRenamedEventArgs> eventHandlerRenamed;
         EventHandler<TaskDescriptionChangedEventArgs> eventHandlerDescriptionChanged;
         EventHandler<TaskDateChangedEventArgs> eventHandlerDateDueChanged;
 
@@ -58,6 +60,10 @@ namespace TaskPlanner
             webClient.Connect("185.16.95.101");
 
             gridSplitter.DragDelta += SplitterNameDragDelta;
+
+            //If firsttime setup
+            StartupWindow startupWindow = new StartupWindow();
+            startupWindow.Show();
         }
 
         private void taskTree_SelectionChanged(object sender, RoutedEventArgs e)
@@ -139,14 +145,12 @@ namespace TaskPlanner
 
         #endregion
 
-        private void MenuItemOpen_Click(object sender, RoutedEventArgs e)
+        private void menuItemServers_Click(object sender, RoutedEventArgs e)
         {
-            System.Windows.Forms.OpenFileDialog dialog = new System.Windows.Forms.OpenFileDialog();
-            dialog.Filter = "Tasklist Files|*.tlf";
-            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (serversWindow == null)
             {
-                tasks.ImportFile(dialog.FileName);
-                PopulateList();
+                serversWindow = new ServersWindow();
+                serversWindow.Show();
             }
         }
 
