@@ -18,7 +18,7 @@
         <Grid VerticalAlignment="Bottom" Margin="20">
             <Button x:Name="buttonServer" Content="Official Server" Width="125" HorizontalAlignment="Left"/>
             <Button x:Name="buttonCustomServer" Content="Custom Server" Width="125" Click="buttonCustomServer_Click"/>
-            <Button x:Name="buttonLocal" Content="Locally"  Width="125" HorizontalAlignment="Right"/>
+            <Button x:Name="buttonLocal" Content="Locally"  Width="125" HorizontalAlignment="Right" Click="buttonLocal_Click"/>
         </Grid>
 
         <TextBlock x:Name="textBlock" Margin="15,20,15,75" TextWrapping="Wrap">Hello and thanks for using SplitTask. Where do you want to start saving your tasklists?<LineBreak/><LineBreak/><Bold>Offical Server</Bold>: Log in to store your tasklists on the offical SplitTask server, enabling easy collaboration and access. <LineBreak/><LineBreak/><Bold>Custom Server</Bold>: Connect to a third party server that hosts your tasklists.<LineBreak/><LineBreak/><Bold>Locally</Bold>: Store your tasklists on this computer.<LineBreak/><LineBreak/>All choices will store a local copy of your tasklists for offline editing.<LineBreak/><LineBreak/>You can change this for individual lists later.</TextBlock>

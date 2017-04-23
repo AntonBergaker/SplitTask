@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>SplitTask signup</title>
+
+	<style>
+		#header {
+			background-color: #4CAF50;
+			width: 100%;
+			height: 150px;
+			margin: 0px;
+			padding: 0px;
+		}
+		#header p:first-child {
+			font-size: 40px;
+			margin: 20px;
+			padding: 20px;
+		}
+		#header p {
+			font-size: 20px;
+			color: #FFFFFF;
+			margin: 0px 0px 0px 20px;
+			padding: 0px 0px 0px 20px;
+		}
+	</style>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+
+<body>
+	<div id="header">
+		<p>SplitTask signup</p>
+		<p>The totally legit website</p>
+	</div>
+	<div id="main">
+		<p>I have not yet purchased any SSL keys. All traffic on this site is unprotected. <b>Do not enter details that you use anywhere else. This site is only for testing purposes</b></p>
+		<br/>
+		<p>Username:</p>
+		<input type="text" name="Username"/><br/>
+		<p>Password:</p>
+		<input type="password" name="Password"/><br/>
+		<p>Email:</p>
+		<input type="email" name="Email"/><br/>
+		<p>Displayname:</p>
+		<input type="text" name="Displayname"/><br/>
+		<input id="submitbutton" type="submit" name="submit"/>
+		<p id="success"></p>
+	</div>
+	<script>
+		$("#submitbutton").click(function(){
+			$.ajax({ url: "http://bergaker.com:80", contentType: "application/json; charset=utf-8", type: "POST",
+				 data: "oh shit waddapp?",
+				 dataType: "json",
+				 success: function (result) {
+					 if (result == null || result.d == null) return;
+					   $('#success').html(result.d); }
+				});
+		});
+	</script>
+</body>
+</html>
